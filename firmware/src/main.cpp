@@ -8,7 +8,7 @@
 #include "globals.h"
 #include "state_machine.h"
 
-// ATTiny software for monitoring and controlling the pi-super-ups board.
+// ATTiny software for monitoring and controlling the Sailor Hat board.
 
 // Spec:
 
