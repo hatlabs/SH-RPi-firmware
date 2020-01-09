@@ -1,58 +1,44 @@
-# Pi Super-UPS
+# Sailor Hat for Raspberry Pi: Firmware
 
-## Hardware
+## Introduction
 
-TODO: Explain design goals
+[Sailor Hat for Raspberry Pi](https://github.com/mairas/sailor-hat-hardware)
+is a Raspberry Pi power management and CAN bus
+controller board for marine and automotive use. The main features are:
 
-TODO: Explain features
+- Power management for 2.7V supercapacitors that provide so-called last gasp
+  energy for shutting down the device in a controlled fashion after the
+  system power is cut.
+- Peak power management: The same supercapacitor circuitry is able to provide
+  peak current for power-hungry devices such as the Raspberry Pi 4B+, allowing
+  those devices to be powered using current-limited subcircuits such as the
+  NMEA2000 bus power wires.
+- Protection circuitry: The board is protected against noisy 12V voltages
+  commonly present on vehicles or marine vessels.
+- Two CAN bus controllers, allowing for different bus configurations, such as
+  two separate NMEA2000 buses, an NMEA2000 and an J1939 engine bus, or in
+  automotive applications, two separate vehicle CAN buses.
+- A battery-powered real-time clock circuit, allowing for the device to
+  keep time even in absence of GPS or networking.
 
-The KiCad design files are in the `hardware` subdirectory. They are still
-untested and no suitability for any purpose is claimed.
+The Sailor Hat circuit board includes an ATTiny841 microcontroller (MCU) that,
+well, controls the hat functionality. This repository contains the MCU
+firmware implementing the Hat control functionality, including the I2C
+communications protocol.
 
-![PCB revision C](pcb-revC.png)
+## Building
 
-## Firmware
+The project is built using PlatformIO (PIO). PlatformIO should automatically
+fetch any dependencies and build the project.
 
-The hardware needs some ATTiny13a code to correctly control the
-wakeup pin (GPIO3) state. This is still to be written!
+## Flashing
 
-## Service software
+Flashing the device is also done using PlatformIO.
 
-### Introduction
+TODO: Describe the flashing harness
 
-`pi-super-ups` is a simple power monitor for Raspberry Pi. It
-monitors a defined GPIO pin on the Raspberry Pi. If the pin goes
-high for ten seconds, a shutdown is triggered. Using GPIO 3 is highly
-recommended because that allows for automatic restarting when power
-is restored (pulling GPIO 3 low powers on the device if it is powered
-off).
+## Usage
 
-The main use case for the script is to have the board powered via
-a couple of super-capacitors. In the case power for the board is
-disconnected, the supercaps are able to supply sufficient power
-that the device is able to shut itself down in a controlled fashion.
+TODO: Document the I2C protocol
 
-A sample circuit fulfilling the purpose is presented in the `circuit`
-subdirectory.
-
-### Installation
-
-The monitor script can be installed by issueing the following command
-in the `src` subdirectory:
-
-    sudo python3 setup.py install
-
-At this point, you
-should already be able to run the script. However, since calling
-`poweroff` requires elevated privileges, it is done using `sudo`.
-Give your preferred user permissions to call `poweroff` without a
-password by running `sudo visudo` and adding the following line:
-
-    pi ALL = NOPASSWD: /sbin/poweroff
-
-Finally, to run the script automatically as a service, copy
-`sk_power_monitor.service` to `/etc/systemd/system`.
-
-### Usage
-
-To configure the monitor behavior, directly edit the script file.
+TODO: Document the different device states and the respective LED blink patterns
