@@ -5,6 +5,7 @@
 
 typedef enum {
   BEGIN,
+  WAIT_FOR_POWER_ON,
   ENTER_POWER_ON_5V_OFF,
   POWER_ON_5V_OFF,
   ENTER_POWER_ON_5V_ON,
@@ -21,6 +22,7 @@ typedef enum {
 } StateType;
 
 void sm_state_BEGIN();
+void sm_state_WAIT_FOR_POWER_ON();
 void sm_state_ENTER_POWER_ON_5V_OFF();
 void sm_state_POWER_ON_5V_OFF();
 void sm_state_ENTER_POWER_ON_5V_ON();

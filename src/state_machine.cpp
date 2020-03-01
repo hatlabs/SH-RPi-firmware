@@ -8,6 +8,7 @@
 // take care to have all enum values of StateType present
 void (*state_machine[])(void) = {
   sm_state_BEGIN,
+  sm_state_WAIT_FOR_POWER_ON,
   sm_state_ENTER_POWER_ON_5V_OFF,
   sm_state_POWER_ON_5V_OFF,
   sm_state_ENTER_POWER_ON_5V_ON,
@@ -28,21 +29,32 @@ uint8_t get_sm_state() {
   return sm_state;
 }
 
+// PATTERN: *___________________
+int off_pattern[] = {50, 950, -1};
+
 void sm_state_BEGIN() {
   set_en5v_pin(false);
-  set_lim_pin(true);
-  set_port_mode(&port_a_mode, ENIN_PIN, INPUT);
   
   i2c_register = 0xff;
   watchdog_limit = 0;
 
-  if (analogRead(V_SUP_ADC_PIN) < power_on_threshold_voltage) {
-    sm_state = ENTER_POWER_ON_5V_OFF;
-  } else {
-    sm_state = ENTER_POWER_ON_5V_ON;
+  green_led_blinker.set_pattern(off_pattern);
+
+  sm_state = WAIT_FOR_POWER_ON;
+}
+
+void sm_state_WAIT_FOR_POWER_ON() {
+  // never start if +12V DC voltage is not present
+  if (v_dcin >= DCIN_THRESHOLD_VALUE) {
+    if (analogRead(V_SUP_ADC_PIN) < power_on_threshold_voltage) {
+      sm_state = ENTER_POWER_ON_5V_OFF;
+    } else {
+      sm_state = ENTER_POWER_ON_5V_ON;
+    }
   }
 }
 
+// PATTERN: *************_*_*_*_
 int charging_pattern[] = {650, 50, 50, 50, 50, 50, 50, 50, -1};
 void sm_state_ENTER_POWER_ON_5V_OFF() {
   green_led_blinker.set_pattern(charging_pattern);
@@ -59,6 +71,7 @@ void sm_state_POWER_ON_5V_OFF() {
   }
 }
 
+// PATTERN: *******************_
 int alles_gut_pattern[] = {950, 50, -1};
 void sm_state_ENTER_POWER_ON_5V_ON() {
   set_en5v_pin(true);
@@ -77,6 +90,7 @@ void sm_state_POWER_ON_5V_ON() {
   }
 }
 
+// PATTERN: *_*_*_*_____________
 int draining_pattern[] = {50, 50, 50, 50, 50, 50, 50, 650, -1};
 void sm_state_ENTER_POWER_OFF_5V_ON() {
   green_led_blinker.set_pattern(draining_pattern);
@@ -102,6 +116,7 @@ void sm_state_POWER_OFF_5V_ON() {
 
 elapsedMillis elapsed_shutdown;
 
+// PATTERN: ****____
 int shutdown_pattern[] = {200, 200, -1};
 void sm_state_ENTER_SHUTDOWN() {
   green_led_blinker.set_pattern(shutdown_pattern);
@@ -117,13 +132,9 @@ void sm_state_SHUTDOWN() {
 }
 
 elapsedMillis elapsed_off;
-int off_pattern[] = {50, 950, -1};
 void sm_state_ENTER_OFF() {
   set_en5v_pin(false);
-  // this should be enough to kill the mcu as well
-  set_port_mode(&port_a_mode, ENIN_PIN, OUTPUT);
-  set_lim_pin(false);
-  // in case we're still not dead, set a blink pattern
+  // in case we're not dead, set a blink pattern
   green_led_blinker.set_pattern(off_pattern);
   sm_state = OFF;
 }
@@ -137,6 +148,7 @@ void sm_state_OFF() {
 
 elapsedMillis elapsed_reboot;
 
+// PATTERN: *_
 int watchdog_pattern[] = {50, 50, -1};
 void sm_state_ENTER_WATCHDOG_REBOOT() {
   elapsed_reboot = 0;
