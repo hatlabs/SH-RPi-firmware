@@ -41,8 +41,8 @@
 
 #define I2C_ADDRESS 0x6d
 
-#define HW_VERSION 6
-#define FW_VERSION 2
+#define HW_VERSION 7
+#define FW_VERSION 3
 
 int slow_pattern[] = {2050, 2003, -1};
 
