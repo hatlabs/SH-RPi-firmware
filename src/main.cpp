@@ -19,10 +19,6 @@
 // - Read 0x10: Query Raspi power state
 // - Write 0x10 0x00: Set Raspi power off
 // - Write 0x10 0x01: Set Raspi power on (who'd ever send that?)
-// - Read 0x11: Query hat power input state
-// - Write 0x11 0x10: Set input power off (kills the MCU as well)
-// - Write 0x11 0x11: Set input power on 
-//   (only possible if MCU is externally powered)
 // - Read 0x12: Query watchdog timeout
 // - Write 0x12 [NN]: Set watchdog timeout to 0.1*NN seconds
 // - Write 0x12 0x00: Disable watchdog
@@ -86,9 +82,10 @@ void receive_I2C_event(int bytes) {
         set_en5v_pin(Wire.read());
         break;
       case 0x11:
-        // Set ENIN (input voltage to Vcap) state
-        // FIXME: this should change the state machine state
-        set_lim_pin(Wire.read());
+        // This used to set ENIN (input voltage to Vcap) state.
+        // However, hardware no longer has support for controlling it,
+        // so this is just ignored.
+        Wire.read();
         break;
       case 0x12:
         // Set or disable watchdog timer
@@ -135,9 +132,9 @@ void request_I2C_event() {
       Wire.write(digitalRead(EN5V_PIN));
       break;
     case 0x11:
-      // Query ENIN state
-      // FIXME: should this be done in the main loop?
-      Wire.write(digitalRead(ENIN_PIN));
+      // This used to query ENIN state, however, the functionality
+      // has been removed from the hardware.
+      Wire.write(1);
       break;
     case 0x12:
       // Query watchdog time remaining

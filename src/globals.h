@@ -13,7 +13,6 @@
 #define GLED_PIN 2  // port B
 
 #define EN5V_PIN 3  // port A
-#define ENIN_PIN 7   // port A
 
 extern PatternBlinker green_led_blinker;
 extern RatioBlinker red_led_blinker;

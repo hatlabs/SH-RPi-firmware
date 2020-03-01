@@ -29,10 +29,6 @@ void set_en5v_pin(bool state) {
   update_port(&port_a_state, EN5V_PIN, state);
 }
 
-void set_lim_pin(bool state) {
-  update_port(&port_a_state, ENIN_PIN, state);
-}
-
 void set_port_mode(volatile uint8_t* port_mode, int pin, bool output) {
   if (output) { 
     *port_mode |= 1 << pin;

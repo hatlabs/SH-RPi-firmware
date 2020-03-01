@@ -12,7 +12,6 @@ extern volatile uint8_t port_b_state;
 void update_port(volatile uint8_t* port_state, uint8_t pin, bool value);
 
 void set_en5v_pin(bool state);
-void set_lim_pin(bool state);
 
 bool read_portA(int pin);
 bool read_portB(int pin);
