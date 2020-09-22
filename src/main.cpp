@@ -1,7 +1,6 @@
 #include <Arduino.h>
-#include <avr/io.h>
-
 #include <Wire.h>
+#include <avr/io.h>
 
 #include "blinker.h"
 #include "digital_io.h"
@@ -210,7 +209,7 @@ void loop() {
 
     // v_supercap and v_dcin have 10 bit range, 0..1023
     // ratio has 15 bit range, 0..32768
-    
+
     supercap_blinker.set_ratio(v_supercap * 32);
     led_12v_blinker.set_ratio(v_dcin * 32);
   }

@@ -2,8 +2,8 @@
 #define _globals_H_
 
 #include <Arduino.h>
-#include "blinker.h"
 
+#include "blinker.h"
 
 #define V_DCIN_ADC_PIN 1
 
