@@ -49,7 +49,6 @@ int slow_pattern[] = {2050, 2003, -1};
 RatioBlinker led_12v_blinker(LED12V_PORT, LED12V_PIN, 200, 0.);
 RatioBlinker supercap_blinker(LEDSTA1_PORT, LEDSTA1_PIN, 210, 0.);
 PatternBlinker status_blinker(LEDSTA2_PORT, LEDSTA2_PIN, slow_pattern);
-volatile bool watchdog_reset = false;
 elapsedMillis watchdog_elapsed;
 volatile int watchdog_limit = 0;
 bool watchdog_value_changed = false;
@@ -69,7 +68,7 @@ unsigned int v_dcin = 0;
 
 void receive_I2C_event(int bytes) {
   // watchdog is considered zeroed after any input
-  watchdog_reset = true;
+  watchdog_elapsed = 0;
 
   // Read the first byte to determine which register is concerned
   i2c_register = Wire.read();
@@ -92,6 +91,7 @@ void receive_I2C_event(int bytes) {
         // Set or disable watchdog timer
         watchdog_limit = 100 * Wire.read();
         watchdog_value_changed = true;
+        watchdog_elapsed = 0;
         break;
       case 0x13:
         // Set power-on threshold voltage
@@ -213,11 +213,6 @@ void loop() {
     
     supercap_blinker.set_ratio(v_supercap * 32);
     led_12v_blinker.set_ratio(v_dcin * 32);
-  }
-
-  if (watchdog_reset) {
-    watchdog_elapsed = 0;
-    watchdog_reset = false;
   }
 
   led_12v_blinker.tick(&port_a_state, &port_b_state);
