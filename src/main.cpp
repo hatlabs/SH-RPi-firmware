@@ -33,37 +33,38 @@
 
 // LEDs:
 
-// Green led, slow brief flashes: Watchdog not set
-// Green led, slow blink: More than 3 s until watchdog timeout
-// Green led, rapid blink: Watchdog timeout imminent
+// STA2 led, slow brief flashes: Watchdog not set
+// STA2 led, slow blink: More than 3 s until watchdog timeout
+// STA2 led, rapid blink: Watchdog timeout imminent
 
-// Red led: indicate supercap charge level
+// STA1 led: indicate supercap charge level
 
 #define I2C_ADDRESS 0x6d
 
-#define HW_VERSION 7
-#define FW_VERSION 3
+#define FW_VERSION 4
 
 int slow_pattern[] = {2050, 2003, -1};
 
 // define external variables declared in globals.h
-PatternBlinker green_led_blinker(GLED_PIN, slow_pattern);
-RatioBlinker red_led_blinker(RLED_PIN, 1000, 0.);
+RatioBlinker led_12v_blinker(LED12V_PORT, LED12V_PIN, 200, 0.);
+RatioBlinker supercap_blinker(LEDSTA1_PORT, LEDSTA1_PIN, 210, 0.);
+PatternBlinker status_blinker(LEDSTA2_PORT, LEDSTA2_PIN, slow_pattern);
 volatile bool watchdog_reset = false;
 elapsedMillis watchdog_elapsed;
 volatile int watchdog_limit = 0;
+bool watchdog_value_changed = false;
 
 bool shutdown_requested = false;
 
 uint8_t i2c_register;
 
-// scaling factor for these: 2.7V eq 1024
-unsigned int power_on_threshold_voltage = 568;   // 1.5V
-unsigned int power_off_threshold_voltage = 379;  // 1.0V
+// scaling factor for these: 2.8V eq 1023
+unsigned int power_on_vcap_voltage = 548;   // 1.5V/2.8V * 1023
+unsigned int power_off_vcap_voltage = 365;  // 1.0V/2.8V * 1023
 
-// scaling factor: 2.7V eq 1024
+// scaling factor: 2.8V eq 1023
 unsigned int v_supercap = 0;
-// scaling factor: 15.76V eq 1024
+// scaling factor: 32V eq 1023
 unsigned int v_dcin = 0;
 
 void receive_I2C_event(int bytes) {
@@ -90,14 +91,15 @@ void receive_I2C_event(int bytes) {
       case 0x12:
         // Set or disable watchdog timer
         watchdog_limit = 100 * Wire.read();
+        watchdog_value_changed = true;
         break;
       case 0x13:
         // Set power-on threshold voltage
-        power_on_threshold_voltage = 4 * Wire.read();
+        power_on_vcap_voltage = 4 * Wire.read();
         break;
       case 0x14:
         // Set power-off threshold voltage
-        power_off_threshold_voltage = 4 * Wire.read();
+        power_off_vcap_voltage = 4 * Wire.read();
         break;
       case 0x30:
         // Set shutdown initiated
@@ -116,11 +118,22 @@ void receive_I2C_event(int bytes) {
   }
 }
 
+uint8_t get_hw_version() {
+  int voltage = analogRead(VERSION_PIN);
+  if (voltage < 5) {  // 5 / 1023 * 1.1 V = 0.0054 V
+    return 7;
+  } else if (voltage > 874) {  // 874 / 1023 * 1.1 V = 0.94 V
+    return 8;
+  } else {
+    return 0;
+  }
+}
+
 void request_I2C_event() {
   switch (i2c_register) {
     case 0x01:
       // Query hardware version
-      Wire.write(HW_VERSION);
+      Wire.write(get_hw_version());
       break;
     case 0x02:
       // Query firmware version
@@ -142,11 +155,11 @@ void request_I2C_event() {
       break;
     case 0x13:
       // Query power-on threshold voltage
-      Wire.write(uint8_t(power_on_threshold_voltage / 4));
+      Wire.write(uint8_t(power_on_vcap_voltage / 4));
       break;
     case 0x14:
       // Query power-off threshold voltage
-      Wire.write(uint8_t(power_off_threshold_voltage / 4));
+      Wire.write(uint8_t(power_off_vcap_voltage / 4));
       break;
     case 0x15:
       // Query state machine state
@@ -175,9 +188,13 @@ void request_I2C_event() {
 void setup() {
   analogReference(INTERNAL1V1);  // set analog reference to 1.1V
 
-  set_port_mode(&port_a_mode, EN5V_PIN, OUTPUT);
-  set_port_mode(&port_b_mode, RLED_PIN, OUTPUT);
-  set_port_mode(&port_b_mode, GLED_PIN, OUTPUT);
+  // ensure that watchdog is disabled
+  watchdog_limit = 0;
+
+  set_port_mode(&port_a_mode, &port_b_mode, EN5V_PORT, EN5V_PIN, OUTPUT);
+  set_port_mode(&port_a_mode, &port_b_mode, LED12V_PORT, LED12V_PIN, OUTPUT);
+  set_port_mode(&port_a_mode, &port_b_mode, LEDSTA1_PORT, LEDSTA1_PIN, OUTPUT);
+  set_port_mode(&port_a_mode, &port_b_mode, LEDSTA2_PORT, LEDSTA2_PIN, OUTPUT);
 
   Wire.begin(I2C_ADDRESS);
   Wire.onRequest(request_I2C_event);
@@ -188,13 +205,14 @@ void loop() {
   static elapsedMillis v_reading_elapsed;
   if (v_reading_elapsed > 50) {
     v_reading_elapsed = 0;
-    v_supercap = analogRead(V_SUP_ADC_PIN);
+    v_supercap = analogRead(V_CAP_ADC_PIN);
     v_dcin = analogRead(V_DCIN_ADC_PIN);
 
-    // v_supercap has 10 bit range, 0..1023
+    // v_supercap and v_dcin have 10 bit range, 0..1023
     // ratio has 15 bit range, 0..32768
     
-    red_led_blinker.set_ratio(v_supercap * 32);
+    supercap_blinker.set_ratio(v_supercap * 32);
+    led_12v_blinker.set_ratio(v_dcin * 32);
   }
 
   if (watchdog_reset) {
@@ -202,18 +220,21 @@ void loop() {
     watchdog_reset = false;
   }
 
-  red_led_blinker.tick(&port_b_state);
-  green_led_blinker.tick(&port_b_state);
+  led_12v_blinker.tick(&port_a_state, &port_b_state);
+  supercap_blinker.tick(&port_a_state, &port_b_state);
+  status_blinker.tick(&port_a_state, &port_b_state);
 
-  // update port B based on the blinker updates
+  // update ports based on the blinker updates
 
+  DDRA = port_a_mode;
+  PORTA = port_a_state;
   DDRB = port_b_mode;
   PORTB = port_b_state;
 
   sm_run();
 
+  // update port A based on the state machine updates (EN5V may change)
+
   DDRA = port_a_mode;
   PORTA = port_a_state;
-
-  // update port A based on the state machine updates
 }

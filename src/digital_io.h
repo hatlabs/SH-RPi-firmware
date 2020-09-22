@@ -16,6 +16,7 @@ void set_en5v_pin(bool state);
 bool read_portA(int pin);
 bool read_portB(int pin);
 
-void set_port_mode(volatile uint8_t* port_mode, int pin, bool output);
+void set_port_mode(volatile uint8_t* port_a_mode, volatile uint8_t* port_b_mode,
+                   int port, int pin, bool output);
 
 #endif
