@@ -48,8 +48,10 @@ int slow_pattern[] = {2050, 2003, -1};
 RatioBlinker led_vin_blinker(LED_VIN_PORT, LED_VIN_PIN, 200, 0.);
 RatioBlinker supercap_blinker(LED_VCAP_PORT, LED_VCAP_PIN, 210, 0.);
 PatternBlinker status_blinker(LED_STATUS_PORT, LED_STATUS_PIN, slow_pattern);
+volatile bool watchdog_reset = false;
 elapsedMillis watchdog_elapsed;
-volatile int watchdog_limit = 0;
+volatile int new_watchdog_limit = -1;
+int watchdog_limit = 0;
 bool watchdog_value_changed = false;
 
 bool shutdown_requested = false;
@@ -67,7 +69,7 @@ unsigned int v_in = 0;
 
 void receive_I2C_event(int bytes) {
   // watchdog is considered zeroed after any input
-  watchdog_elapsed = 0;
+  watchdog_reset = true;
 
   // Read the first byte to determine which register is concerned
   i2c_register = Wire.read();
@@ -88,9 +90,7 @@ void receive_I2C_event(int bytes) {
         break;
       case 0x12:
         // Set or disable watchdog timer
-        watchdog_limit = 100 * Wire.read();
-        watchdog_value_changed = true;
-        watchdog_elapsed = 0;
+        new_watchdog_limit = 100 * Wire.read();
         break;
       case 0x13:
         // Set power-on threshold voltage
@@ -187,9 +187,6 @@ void request_I2C_event() {
 void setup() {
   analogReference(INTERNAL1V1);  // set analog reference to 1.1V
 
-  // ensure that watchdog is disabled
-  watchdog_limit = 0;
-
   set_port_mode(&port_a_mode, &port_b_mode, EN5V_PORT, EN5V_PIN, OUTPUT);
   set_port_mode(&port_a_mode, &port_b_mode, LED_VIN_PORT, LED_VIN_PIN, OUTPUT);
   set_port_mode(&port_a_mode, &port_b_mode, LED_VCAP_PORT, LED_VCAP_PIN, OUTPUT);
@@ -212,6 +209,17 @@ void loop() {
 
     supercap_blinker.set_ratio(v_supercap * 32);
     led_vin_blinker.set_ratio(v_in * 32);
+  }
+
+  if (watchdog_reset) {
+    if (new_watchdog_limit != -1) {
+      watchdog_value_changed = true;
+      watchdog_limit = new_watchdog_limit;
+      new_watchdog_limit = -1;
+    }
+    
+    watchdog_elapsed = 0;
+    watchdog_reset = false;
   }
 
   led_vin_blinker.tick(&port_a_state, &port_b_state);

@@ -25,8 +25,10 @@ extern PatternBlinker status_blinker;
 extern RatioBlinker led_vin_blinker;
 extern RatioBlinker supercap_blinker;
 
+// milliseconds elapsed since last watchdog reset
 extern elapsedMillis watchdog_elapsed;
-extern volatile int watchdog_limit;
+// watchdog time limit
+extern int watchdog_limit;
 extern bool watchdog_value_changed;
 
 extern uint8_t i2c_register;
