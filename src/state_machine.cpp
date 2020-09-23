@@ -37,6 +37,7 @@ void sm_state_BEGIN() {
 
   i2c_register = 0xff;
   watchdog_limit = 0;
+  gpio_poweroff_elapsed = 0;
 
   status_blinker.set_pattern(off_pattern);
 
@@ -94,6 +95,12 @@ void sm_state_ON() {
     return;
   }
 
+  // kill the power if the host has been powered off for more than a second
+  if (gpio_poweroff_elapsed > 1000) {
+    sm_state = ENT_OFF;
+    return;
+  }
+
   if (v_in < DCIN_LIMIT) {
     sm_state = ENT_DEPLETING;
   }
@@ -116,10 +123,19 @@ void sm_state_DEPLETING() {
   if (shutdown_requested) {
     shutdown_requested = false;
     sm_state = ENT_SHUTDOWN;
+    return;
   } else if (v_in > DCIN_LIMIT) {
     sm_state = ENT_ON;
+    return;
   } else if (v_supercap < power_off_vcap_voltage) {
     sm_state = ENT_OFF;
+    return;
+  }
+
+  // kill the power if the host has been powered off for more than a second
+  if (gpio_poweroff_elapsed > 1000) {
+    sm_state = ENT_OFF;
+    return;
   }
 }
 
@@ -137,7 +153,7 @@ void sm_state_ENT_SHUTDOWN() {
 }
 
 void sm_state_SHUTDOWN() {
-  if (elapsed_shutdown > 20000) {
+  if ((gpio_poweroff_elapsed > 1000) || (elapsed_shutdown > 20000)) {
     sm_state = ENT_OFF;
   }
 }

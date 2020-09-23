@@ -21,6 +21,8 @@
 
 #define VERSION_PIN 5
 
+#define GPIO_POWEROFF_PIN 6  // port A; same as SDA
+
 extern PatternBlinker status_blinker;
 extern RatioBlinker led_vin_blinker;
 extern RatioBlinker supercap_blinker;
@@ -30,6 +32,9 @@ extern elapsedMillis watchdog_elapsed;
 // watchdog time limit
 extern int watchdog_limit;
 extern bool watchdog_value_changed;
+
+// milliseconds elapsed since gpio-poweroff pin was last high
+extern elapsedMillis gpio_poweroff_elapsed;
 
 extern uint8_t i2c_register;
 

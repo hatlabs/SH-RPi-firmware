@@ -54,6 +54,8 @@ volatile int new_watchdog_limit = -1;
 int watchdog_limit = 0;
 bool watchdog_value_changed = false;
 
+elapsedMillis gpio_poweroff_elapsed;
+
 bool shutdown_requested = false;
 
 uint8_t i2c_register;
@@ -199,11 +201,14 @@ void setup() {
 
 void loop() {
   static elapsedMillis v_reading_elapsed;
-  if (v_reading_elapsed > 50) {
+  if (v_reading_elapsed > 47) {
     v_reading_elapsed = 0;
     v_supercap = analogRead(V_CAP_ADC_PIN);
-
     v_in = analogRead(V_IN_ADC_PIN);
+    if (read_portA(GPIO_POWEROFF_PIN)==true) {
+      gpio_poweroff_elapsed = 0;
+    }
+    
     // v_supercap and v_dcin have 10 bit range, 0..1023
     // ratio has 15 bit range, 0..32768
 
