@@ -119,22 +119,12 @@ void receive_I2C_event(int bytes) {
   }
 }
 
-uint8_t get_hw_version() {
-  int voltage = analogRead(VERSION_PIN);
-  if (voltage < 5) {  // 5 / 1023 * 1.1 V = 0.0054 V
-    return 7;
-  } else if (voltage > 874) {  // 874 / 1023 * 1.1 V = 0.94 V
-    return 8;
-  } else {
-    return 0;
-  }
-}
-
 void request_I2C_event() {
   switch (i2c_register) {
     case 0x01:
       // Query hardware version
-      Wire.write(get_hw_version());
+      // NB: Feature removed!
+      Wire.write(0);
       break;
     case 0x02:
       // Query firmware version

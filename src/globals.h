@@ -19,8 +19,6 @@
 #define EN5V_PORT 0  // port A
 #define EN5V_PIN 3
 
-#define VERSION_PIN 5
-
 #define GPIO_POWEROFF_PIN 6  // port A; same as SDA
 
 extern PatternBlinker status_blinker;
