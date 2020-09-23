@@ -10,9 +10,9 @@ volatile uint8_t port_a_state = PORTA;
 volatile uint8_t port_b_mode = DDRB;
 volatile uint8_t port_b_state = PORTB;
 
-bool read_portA(int pin) { return PORTA & (1 << pin); }
+bool read_portA(int pin) { return PINA & (1 << pin); }
 
-bool read_portB(int pin) { return PORTB & (1 << pin); }
+bool read_portB(int pin) { return PINB & (1 << pin); }
 
 void update_port(volatile uint8_t* port_state, uint8_t pin, bool value) {
   if (value) {
