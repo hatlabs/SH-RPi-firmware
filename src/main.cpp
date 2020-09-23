@@ -27,16 +27,16 @@
 // - Write 0x14 [NN]: Set power-off threshold voltage to 0.01*NN V
 // - Read 0x15: Query state machine state
 // - Read 0x16: Query watchdog elapsed
-// - Read 0x20: Query DC IN (12V) voltage
+// - Read 0x20: Query DC IN voltage
 // - Read 0x21: Query supercap voltage
 
 // LEDs:
 
-// STA2 led, slow brief flashes: Watchdog not set
-// STA2 led, slow blink: More than 3 s until watchdog timeout
-// STA2 led, rapid blink: Watchdog timeout imminent
+// STATUS led, slow brief flashes: Watchdog not set
+// STATUS led, slow blink: More than 3 s until watchdog timeout
+// STATUS led, rapid blink: Watchdog timeout imminent
 
-// STA1 led: indicate supercap charge level
+// VCAP led: indicate supercap charge level
 
 #define I2C_ADDRESS 0x6d
 
@@ -45,9 +45,9 @@
 int slow_pattern[] = {2050, 2003, -1};
 
 // define external variables declared in globals.h
-RatioBlinker led_12v_blinker(LED12V_PORT, LED12V_PIN, 200, 0.);
-RatioBlinker supercap_blinker(LEDSTA1_PORT, LEDSTA1_PIN, 210, 0.);
-PatternBlinker status_blinker(LEDSTA2_PORT, LEDSTA2_PIN, slow_pattern);
+RatioBlinker led_vin_blinker(LED_VIN_PORT, LED_VIN_PIN, 200, 0.);
+RatioBlinker supercap_blinker(LED_VCAP_PORT, LED_VCAP_PIN, 210, 0.);
+PatternBlinker status_blinker(LED_STATUS_PORT, LED_STATUS_PIN, slow_pattern);
 elapsedMillis watchdog_elapsed;
 volatile int watchdog_limit = 0;
 bool watchdog_value_changed = false;
@@ -63,7 +63,7 @@ unsigned int power_off_vcap_voltage = 365;  // 1.0V/2.8V * 1023
 // scaling factor: 2.8V eq 1023
 unsigned int v_supercap = 0;
 // scaling factor: 32V eq 1023
-unsigned int v_dcin = 0;
+unsigned int v_in = 0;
 
 void receive_I2C_event(int bytes) {
   // watchdog is considered zeroed after any input
@@ -170,7 +170,7 @@ void request_I2C_event() {
       break;
     case 0x20:
       // Query DC IN voltage
-      Wire.write(uint8_t(v_dcin / 4));
+      Wire.write(uint8_t(v_in / 4));
       break;
     case 0x21:
       // Query supercap voltage
@@ -191,9 +191,9 @@ void setup() {
   watchdog_limit = 0;
 
   set_port_mode(&port_a_mode, &port_b_mode, EN5V_PORT, EN5V_PIN, OUTPUT);
-  set_port_mode(&port_a_mode, &port_b_mode, LED12V_PORT, LED12V_PIN, OUTPUT);
-  set_port_mode(&port_a_mode, &port_b_mode, LEDSTA1_PORT, LEDSTA1_PIN, OUTPUT);
-  set_port_mode(&port_a_mode, &port_b_mode, LEDSTA2_PORT, LEDSTA2_PIN, OUTPUT);
+  set_port_mode(&port_a_mode, &port_b_mode, LED_VIN_PORT, LED_VIN_PIN, OUTPUT);
+  set_port_mode(&port_a_mode, &port_b_mode, LED_VCAP_PORT, LED_VCAP_PIN, OUTPUT);
+  set_port_mode(&port_a_mode, &port_b_mode, LED_STATUS_PORT, LED_STATUS_PIN, OUTPUT);
 
   Wire.begin(I2C_ADDRESS);
   Wire.onRequest(request_I2C_event);
@@ -205,16 +205,16 @@ void loop() {
   if (v_reading_elapsed > 50) {
     v_reading_elapsed = 0;
     v_supercap = analogRead(V_CAP_ADC_PIN);
-    v_dcin = analogRead(V_DCIN_ADC_PIN);
 
+    v_in = analogRead(V_IN_ADC_PIN);
     // v_supercap and v_dcin have 10 bit range, 0..1023
     // ratio has 15 bit range, 0..32768
 
     supercap_blinker.set_ratio(v_supercap * 32);
-    led_12v_blinker.set_ratio(v_dcin * 32);
+    led_vin_blinker.set_ratio(v_in * 32);
   }
 
-  led_12v_blinker.tick(&port_a_state, &port_b_state);
+  led_vin_blinker.tick(&port_a_state, &port_b_state);
   supercap_blinker.tick(&port_a_state, &port_b_state);
   status_blinker.tick(&port_a_state, &port_b_state);
 

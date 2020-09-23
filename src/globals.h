@@ -5,16 +5,16 @@
 
 #include "blinker.h"
 
-#define V_DCIN_ADC_PIN 1
+#define V_IN_ADC_PIN 1
 
 #define V_CAP_ADC_PIN 2
 
-#define LED12V_PORT 0  // port A
-#define LED12V_PIN 7
-#define LEDSTA1_PORT 1  // port B
-#define LEDSTA1_PIN 2
-#define LEDSTA2_PORT 1  // port B
-#define LEDSTA2_PIN 1
+#define LED_VIN_PORT 0  // port A
+#define LED_VIN_PIN 7
+#define LED_VCAP_PORT 1  // port B
+#define LED_VCAP_PIN 2
+#define LED_STATUS_PORT 1  // port B
+#define LED_STATUS_PIN 1
 
 #define EN5V_PORT 0  // port A
 #define EN5V_PIN 3
@@ -22,7 +22,7 @@
 #define VERSION_PIN 5
 
 extern PatternBlinker status_blinker;
-extern RatioBlinker led_12v_blinker;
+extern RatioBlinker led_vin_blinker;
 extern RatioBlinker supercap_blinker;
 
 extern elapsedMillis watchdog_elapsed;
@@ -35,7 +35,7 @@ extern unsigned int power_on_vcap_voltage;
 extern unsigned int power_off_vcap_voltage;
 
 extern unsigned int v_supercap;
-extern unsigned int v_dcin;
+extern unsigned int v_in;
 
 extern bool shutdown_requested;
 

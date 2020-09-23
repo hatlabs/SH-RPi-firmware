@@ -45,7 +45,7 @@ void sm_state_BEGIN() {
 
 void sm_state_WAIT_VIN_ON() {
   // never start if DC input voltage is not present
-  if (v_dcin >= DCIN_LIMIT) {
+  if (v_in >= DCIN_LIMIT) {
     sm_state = ENT_CHARGING;
   }
 }
@@ -61,7 +61,7 @@ void sm_state_ENT_CHARGING() {
 void sm_state_CHARGING() {
   if (v_supercap > power_on_vcap_voltage) {
     sm_state = ENT_ON;
-  } else if (v_dcin < DCIN_LIMIT) {
+  } else if (v_in < DCIN_LIMIT) {
     // if power is cut before supercap is charged,
     // kill power immediately
     sm_state = ENT_OFF;
@@ -94,7 +94,7 @@ void sm_state_ON() {
     return;
   }
 
-  if (v_dcin < DCIN_LIMIT) {
+  if (v_in < DCIN_LIMIT) {
     sm_state = ENT_DEPLETING;
   }
 }
@@ -116,7 +116,7 @@ void sm_state_DEPLETING() {
   if (shutdown_requested) {
     shutdown_requested = false;
     sm_state = ENT_SHUTDOWN;
-  } else if (v_dcin > DCIN_LIMIT) {
+  } else if (v_in > DCIN_LIMIT) {
     sm_state = ENT_ON;
   } else if (v_supercap < power_off_vcap_voltage) {
     sm_state = ENT_OFF;
