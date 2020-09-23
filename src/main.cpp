@@ -210,10 +210,17 @@ void loop() {
     }
     
     // v_supercap and v_dcin have 10 bit range, 0..1023
-    // ratio has 15 bit range, 0..32768
+    // ratio has 15 bit range, 0..32767
 
     supercap_blinker.set_ratio(v_supercap * 32);
-    led_vin_blinker.set_ratio(v_in * 32);
+    
+    if (v_in > int(11.5/32*1023)) {
+      led_vin_blinker.set_ratio(32767);
+    } else if (v_in > int(10./32*1023)) {
+      led_vin_blinker.set_ratio(int(32767/2));
+    } else {
+      led_vin_blinker.set_ratio(0);
+    }
   }
 
   if (watchdog_reset) {
