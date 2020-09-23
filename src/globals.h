@@ -19,7 +19,37 @@
 #define EN5V_PORT 0  // port A
 #define EN5V_PIN 3
 
-#define GPIO_POWEROFF_PIN 6  // port A; same as SDA
+// port A; same as SDA
+#define GPIO_POWEROFF_PIN 6
+// if POWEROFF_PIN is low for more than this amount of ms, host is off
+#define GPIO_OFF_TIME_LIMIT 1000
+
+// Vcap voltage at which 5V is enabled
+#define VCAP_POWER_ON 1.5
+// Vcap voltage at which 5V is disabled
+#define VCAP_POWER_OFF 1.0
+// max scaling value for Vcap voltage
+#define VCAP_MAX 2.8
+// integer scaling factor for Vcap voltage
+#define VCAP_SCALE 1023
+
+// blink the Vin led below this voltage
+#define VIN_LOW 11.5
+// turn off below this voltage
+#define VIN_OFF 10.0
+// max voltage for Vin
+#define VIN_MAX 32.0
+// Vin scaling factor
+#define VIN_SCALE 1023
+
+// how long to wait until forcibly shutdown
+#define SHUTDOWN_WAIT_DURATION 60000
+
+// how long to stay in off state until restarting
+#define OFF_STATE_DURATION 5000
+
+// how long to keep EN5V low in the event of watchdog reboot
+#define WATCHDOG_REBOOT_DURATION 2000
 
 extern PatternBlinker status_blinker;
 extern RatioBlinker led_vin_blinker;

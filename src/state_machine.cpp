@@ -3,10 +3,6 @@
 #include "digital_io.h"
 #include "globals.h"
 
-// threshold set to 10V, readout scaled to 32V
-// 10V / 32V * 1023 = 320
-#define DCIN_LIMIT 320
-
 // take care to have all enum values of StateType present
 void (*state_machine[])(void) = {
     sm_state_BEGIN,
@@ -46,7 +42,7 @@ void sm_state_BEGIN() {
 
 void sm_state_WAIT_VIN_ON() {
   // never start if DC input voltage is not present
-  if (v_in >= DCIN_LIMIT) {
+  if (v_in >= int(VIN_OFF / VIN_MAX * VIN_SCALE)) {
     sm_state = ENT_CHARGING;
   }
 }
@@ -62,7 +58,7 @@ void sm_state_ENT_CHARGING() {
 void sm_state_CHARGING() {
   if (v_supercap > power_on_vcap_voltage) {
     sm_state = ENT_ON;
-  } else if (v_in < DCIN_LIMIT) {
+  } else if (v_in < int(VIN_OFF / VIN_MAX * VIN_SCALE)) {
     // if power is cut before supercap is charged,
     // kill power immediately
     sm_state = ENT_OFF;
@@ -96,12 +92,12 @@ void sm_state_ON() {
   }
 
   // kill the power if the host has been powered off for more than a second
-  if (gpio_poweroff_elapsed > 1000) {
+  if (gpio_poweroff_elapsed > GPIO_OFF_TIME_LIMIT) {
     sm_state = ENT_OFF;
     return;
   }
 
-  if (v_in < DCIN_LIMIT) {
+  if (v_in < int(VIN_OFF / VIN_MAX * VIN_SCALE)) {
     sm_state = ENT_DEPLETING;
   }
 }
@@ -124,7 +120,7 @@ void sm_state_DEPLETING() {
     shutdown_requested = false;
     sm_state = ENT_SHUTDOWN;
     return;
-  } else if (v_in > DCIN_LIMIT) {
+  } else if (v_in > int(VIN_OFF / VIN_MAX * VIN_SCALE)) {
     sm_state = ENT_ON;
     return;
   } else if (v_supercap < power_off_vcap_voltage) {
@@ -133,7 +129,7 @@ void sm_state_DEPLETING() {
   }
 
   // kill the power if the host has been powered off for more than a second
-  if (gpio_poweroff_elapsed > 1000) {
+  if (gpio_poweroff_elapsed > GPIO_OFF_TIME_LIMIT) {
     sm_state = ENT_OFF;
     return;
   }
@@ -153,7 +149,8 @@ void sm_state_ENT_SHUTDOWN() {
 }
 
 void sm_state_SHUTDOWN() {
-  if ((gpio_poweroff_elapsed > 1000) || (elapsed_shutdown > 20000)) {
+  if ((gpio_poweroff_elapsed > GPIO_OFF_TIME_LIMIT) ||
+      (elapsed_shutdown > SHUTDOWN_WAIT_DURATION)) {
     sm_state = ENT_OFF;
   }
 }
@@ -168,7 +165,7 @@ void sm_state_ENT_OFF() {
 }
 
 void sm_state_OFF() {
-  if (elapsed_off > 5000) {
+  if (elapsed_off > OFF_STATE_DURATION) {
     // if we're still alive, jump back to begin
     sm_state = BEGIN;
   }
@@ -188,7 +185,7 @@ void sm_state_ENT_WATCHDOG_REBOOT() {
 }
 
 void sm_state_WATCHDOG_REBOOT() {
-  if (elapsed_reboot > 2000) {
+  if (elapsed_reboot > WATCHDOG_REBOOT_DURATION) {
     sm_state = BEGIN;
   }
 }

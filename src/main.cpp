@@ -60,13 +60,11 @@ bool shutdown_requested = false;
 
 uint8_t i2c_register;
 
-// scaling factor for these: 2.8V eq 1023
-unsigned int power_on_vcap_voltage = 548;   // 1.5V/2.8V * 1023
-unsigned int power_off_vcap_voltage = 365;  // 1.0V/2.8V * 1023
+unsigned int power_on_vcap_voltage = int(VCAP_POWER_ON / VCAP_MAX * VCAP_SCALE);
+unsigned int power_off_vcap_voltage =
+    int(VCAP_POWER_OFF / VCAP_MAX * VCAP_SCALE);
 
-// scaling factor: 2.8V eq 1023
 unsigned int v_supercap = 0;
-// scaling factor: 32V eq 1023
 unsigned int v_in = 0;
 
 void receive_I2C_event(int bytes) {
@@ -92,14 +90,17 @@ void receive_I2C_event(int bytes) {
         break;
       case 0x12:
         // Set or disable watchdog timer
+        // FIXME: magic numbers
         new_watchdog_limit = 100 * Wire.read();
         break;
       case 0x13:
         // Set power-on threshold voltage
+        // FIXME: magic numbers
         power_on_vcap_voltage = 4 * Wire.read();
         break;
       case 0x14:
         // Set power-off threshold voltage
+        // FIXME: magic numbers
         power_off_vcap_voltage = 4 * Wire.read();
         break;
       case 0x30:
@@ -142,14 +143,17 @@ void request_I2C_event() {
       break;
     case 0x12:
       // Query watchdog time remaining
+      // FIXME: magic numbers
       Wire.write(watchdog_limit / 100);
       break;
     case 0x13:
       // Query power-on threshold voltage
+      // FIXME: magic numbers
       Wire.write(uint8_t(power_on_vcap_voltage / 4));
       break;
     case 0x14:
       // Query power-off threshold voltage
+      // FIXME: magic numbers
       Wire.write(uint8_t(power_off_vcap_voltage / 4));
       break;
     case 0x15:
@@ -158,14 +162,17 @@ void request_I2C_event() {
       break;
     case 0x16:
       // Query watchdog elapsed
+      // FIXME: magic numbers
       Wire.write(watchdog_elapsed / 100);
       break;
     case 0x20:
       // Query DC IN voltage
+      // FIXME: magic numbers
       Wire.write(uint8_t(v_in / 4));
       break;
     case 0x21:
       // Query supercap voltage
+      // FIXME: magic numbers
       Wire.write(uint8_t(v_supercap / 4));
       break;
     case 0x22:
@@ -181,8 +188,10 @@ void setup() {
 
   set_port_mode(&port_a_mode, &port_b_mode, EN5V_PORT, EN5V_PIN, OUTPUT);
   set_port_mode(&port_a_mode, &port_b_mode, LED_VIN_PORT, LED_VIN_PIN, OUTPUT);
-  set_port_mode(&port_a_mode, &port_b_mode, LED_VCAP_PORT, LED_VCAP_PIN, OUTPUT);
-  set_port_mode(&port_a_mode, &port_b_mode, LED_STATUS_PORT, LED_STATUS_PIN, OUTPUT);
+  set_port_mode(&port_a_mode, &port_b_mode, LED_VCAP_PORT, LED_VCAP_PIN,
+                OUTPUT);
+  set_port_mode(&port_a_mode, &port_b_mode, LED_STATUS_PORT, LED_STATUS_PIN,
+                OUTPUT);
 
   Wire.begin(I2C_ADDRESS);
   Wire.onRequest(request_I2C_event);
@@ -191,24 +200,31 @@ void setup() {
 
 void loop() {
   static elapsedMillis v_reading_elapsed;
+  // no need to read the values at every iteration;
+  // 47 ms selected to descynchronize the reading from
+  // other loops
   if (v_reading_elapsed > 47) {
     v_reading_elapsed = 0;
     v_supercap = analogRead(V_CAP_ADC_PIN);
     v_in = analogRead(V_IN_ADC_PIN);
-    if (read_portA(GPIO_POWEROFF_PIN)==true) {
+    if (read_portA(GPIO_POWEROFF_PIN) == true) {
       gpio_poweroff_elapsed = 0;
     }
-    
+
     // v_supercap and v_dcin have 10 bit range, 0..1023
     // ratio has 15 bit range, 0..32767
 
-    supercap_blinker.set_ratio(v_supercap * 32);
-    
-    if (v_in > int(11.5/32*1023)) {
-      led_vin_blinker.set_ratio(32767);
-    } else if (v_in > int(10./32*1023)) {
-      led_vin_blinker.set_ratio(int(32767/2));
+    supercap_blinker.set_ratio(v_supercap *
+                               int(BLINKER_PERIOD_SCALE / VCAP_SCALE));
+
+    if (v_in > int(VIN_LOW / VIN_MAX * VIN_SCALE)) {
+      // LED always on
+      led_vin_blinker.set_ratio(BLINKER_PERIOD_SCALE);
+    } else if (v_in > int(VIN_OFF / VIN_MAX * VIN_SCALE)) {
+      // LED 50% on
+      led_vin_blinker.set_ratio(int(BLINKER_PERIOD_SCALE / 2));
     } else {
+      // LED off
       led_vin_blinker.set_ratio(0);
     }
   }
@@ -219,7 +235,7 @@ void loop() {
       watchdog_limit = new_watchdog_limit;
       new_watchdog_limit = -1;
     }
-    
+
     watchdog_elapsed = 0;
     watchdog_reset = false;
   }

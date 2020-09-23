@@ -5,6 +5,8 @@
 
 #include "digital_io.h"
 
+#define BLINKER_PERIOD_SCALE 32768
+
 class BaseBlinker {
  public:
   BaseBlinker(int port, int pin);
