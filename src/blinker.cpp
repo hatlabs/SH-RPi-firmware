@@ -33,10 +33,10 @@ RatioBlinker::RatioBlinker(int port, int pin, unsigned int period,
 
 void RatioBlinker::tick(volatile uint8_t* port_a_state,
                         volatile uint8_t* port_b_state) {
-  int onDuration = (long)ratio * period / BLINKER_PERIOD_SCALE;
-  int offDuration = max(0, period - onDuration);
-  unsigned int refDuration = state == false ? offDuration : onDuration;
-  if (elapsed > refDuration) {
+  int on_duration = (long)ratio * period / BLINKER_PERIOD_SCALE;
+  int off_duration = max(0, period - on_duration);
+  unsigned int ref_duration = state == false ? off_duration : on_duration;
+  if (elapsed > ref_duration) {
     auto port_state = this->port ? port_b_state : port_a_state;
     elapsed = 0;
     state = !state;
