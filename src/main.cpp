@@ -45,9 +45,9 @@
 int slow_pattern[] = {2050, 2003, -1};
 
 // define external variables declared in globals.h
-RatioBlinker led_vin_blinker(LED_VIN_PORT, LED_VIN_PIN, 200, 0.);
-RatioBlinker supercap_blinker(LED_VCAP_PORT, LED_VCAP_PIN, 210, 0.);
-PatternBlinker status_blinker(LED_STATUS_PORT, LED_STATUS_PIN, slow_pattern);
+RatioBlinker led_vin_blinker(LED_VIN_PIN, 200, 0.);
+RatioBlinker supercap_blinker(LED_VCAP_PIN, 210, 0.);
+PatternBlinker status_blinker(LED_STATUS_PIN, slow_pattern);
 volatile bool watchdog_reset = false;
 elapsedMillis watchdog_elapsed;
 volatile int new_watchdog_limit = -1;
@@ -186,12 +186,10 @@ void request_I2C_event() {
 void setup() {
   analogReference(INTERNAL1V1);  // set analog reference to 1.1V
 
-  set_port_mode(&port_a_mode, &port_b_mode, EN5V_PORT, EN5V_PIN, OUTPUT);
-  set_port_mode(&port_a_mode, &port_b_mode, LED_VIN_PORT, LED_VIN_PIN, OUTPUT);
-  set_port_mode(&port_a_mode, &port_b_mode, LED_VCAP_PORT, LED_VCAP_PIN,
-                OUTPUT);
-  set_port_mode(&port_a_mode, &port_b_mode, LED_STATUS_PORT, LED_STATUS_PIN,
-                OUTPUT);
+  pinMode(EN5V_PIN, OUTPUT);
+  pinMode(LED_VIN_PIN, OUTPUT);
+  pinMode(LED_VCAP_PIN, OUTPUT);
+  pinMode(LED_STATUS_PIN, OUTPUT);
 
   Wire.begin(I2C_ADDRESS);
   Wire.onRequest(request_I2C_event);
@@ -207,7 +205,7 @@ void loop() {
     v_reading_elapsed = 0;
     v_supercap = analogRead(V_CAP_ADC_PIN);
     v_in = analogRead(V_IN_ADC_PIN);
-    if (read_portA(GPIO_POWEROFF_PIN) == true) {
+    if (read_pin(GPIO_POWEROFF_PIN) == true) {
       gpio_poweroff_elapsed = 0;
     }
 
@@ -240,21 +238,9 @@ void loop() {
     watchdog_reset = false;
   }
 
-  led_vin_blinker.tick(&port_a_state, &port_b_state);
-  supercap_blinker.tick(&port_a_state, &port_b_state);
-  status_blinker.tick(&port_a_state, &port_b_state);
-
-  // update ports based on the blinker updates
-
-  DDRA = port_a_mode;
-  PORTA = port_a_state;
-  DDRB = port_b_mode;
-  PORTB = port_b_state;
+  led_vin_blinker.tick();
+  supercap_blinker.tick();
+  status_blinker.tick();
 
   sm_run();
-
-  // update port A based on the state machine updates (EN5V may change)
-
-  DDRA = port_a_mode;
-  PORTA = port_a_state;
 }

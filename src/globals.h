@@ -5,22 +5,25 @@
 
 #include "blinker.h"
 
-#define V_IN_ADC_PIN 1
+//////
+// Hardware pin definitions
 
-#define V_CAP_ADC_PIN 2
+#define V_IN_ADC_PIN PIN_PA6
 
-#define LED_VIN_PORT 0  // port A
-#define LED_VIN_PIN 7
-#define LED_VCAP_PORT 1  // port B
-#define LED_VCAP_PIN 2
-#define LED_STATUS_PORT 1  // port B
-#define LED_STATUS_PIN 1
+#define V_CAP_ADC_PIN PIN_PA7
 
-#define EN5V_PORT 0  // port A
-#define EN5V_PIN 3
+#define LED_VIN_PIN PIN_PA3
+#define LED_VCAP_PIN PIN_PA4
+#define LED_STATUS_PIN PIN_PA1
 
-// port A; same as SDA
-#define GPIO_POWEROFF_PIN 6
+#define EN5V_PIN PIN_PA5
+
+// same as SDA
+#define GPIO_POWEROFF_PIN PIN_PB1
+
+//////
+// Other behavioral definitions
+
 // if POWEROFF_PIN is low for more than this amount of ms, host is off
 #define GPIO_OFF_TIME_LIMIT 1000
 
@@ -50,6 +53,9 @@
 
 // how long to keep EN5V low in the event of watchdog reboot
 #define WATCHDOG_REBOOT_DURATION 2000
+
+//////
+// Globals
 
 extern PatternBlinker status_blinker;
 extern RatioBlinker led_vin_blinker;

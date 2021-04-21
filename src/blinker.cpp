@@ -2,76 +2,66 @@
 
 #include "digital_io.h"
 
-BaseBlinker::BaseBlinker(int port, int pin) : port{port}, pin{pin} {}
-
-void BaseBlinker::set_state(volatile uint8_t* port_a_state,
-                            volatile uint8_t* port_b_state, bool state) {
-  this->state = state;
-  auto port_state = this->port ? port_b_state : port_a_state;
-  update_port(port_state, pin, state);
+BaseBlinker::BaseBlinker(int pin) : pin_{pin} {
+  port_ = digitalPinToPortStruct(pin);
+  pin_mask_ = digitalPinToBitMask(pin);
 }
 
-PeriodicBlinker::PeriodicBlinker(int port, int pin, unsigned int period)
-    : BaseBlinker(port, pin), period{period} {}
+PeriodicBlinker::PeriodicBlinker(int pin, unsigned int period)
+    : BaseBlinker(pin), period{period} {}
 
-EvenBlinker::EvenBlinker(int port, int pin, unsigned int period)
-    : PeriodicBlinker(port, pin, period) {}
+EvenBlinker::EvenBlinker(int pin, unsigned int period)
+    : PeriodicBlinker(pin, period) {}
 
-void EvenBlinker::tick(volatile uint8_t* port_a_state,
-                       volatile uint8_t* port_b_state) {
+void EvenBlinker::tick() {
   if (elapsed > period) {
-    auto port_state = this->port ? port_b_state : port_a_state;
     elapsed = 0;
-    state = !state;
-    return update_port(port_state, pin, state);
+    state_ = !state_;
+    update_pin(port_, pin_mask_, state_);
   }
 }
 
-RatioBlinker::RatioBlinker(int port, int pin, unsigned int period,
+RatioBlinker::RatioBlinker(int pin, unsigned int period,
                            unsigned int ratio)
-    : PeriodicBlinker(port, pin, period), ratio{ratio} {}
+    : PeriodicBlinker(pin, period), ratio{ratio} {}
 
-void RatioBlinker::tick(volatile uint8_t* port_a_state,
-                        volatile uint8_t* port_b_state) {
+void RatioBlinker::tick() {
   int on_duration = (long)ratio * period / BLINKER_PERIOD_SCALE;
   int off_duration = max(0, period - on_duration);
-  unsigned int ref_duration = state == false ? off_duration : on_duration;
+  unsigned int ref_duration = state_ == false ? off_duration : on_duration;
   if (elapsed > ref_duration) {
-    auto port_state = this->port ? port_b_state : port_a_state;
     elapsed = 0;
-    state = !state;
-    return update_port(port_state, pin, state);
+    state_ = !state_;
+    update_pin(port_, pin_mask_, state_);
   }
 }
 
-PatternBlinker::PatternBlinker(int port, int pin, int pattern[])
-    : BaseBlinker(port, pin), pattern{pattern} {}
+PatternBlinker::PatternBlinker(int pin, int pattern[])
+    : BaseBlinker(pin), pattern{pattern} {}
 
 void PatternBlinker::set_pattern(int pattern[]) {
   this->pattern = pattern;
-  state = false;
+  state_ = false;
   pattern_ptr = 0;
 }
 
-void PatternBlinker::tick(volatile uint8_t* port_a_state,
-                          volatile uint8_t* port_b_state) {
+void PatternBlinker::tick() {
   if (elapsed > pattern[pattern_ptr]) {
-    auto port_state = this->port ? port_b_state : port_a_state;
     elapsed = 0;
     pattern_ptr++;
     // loop to zero if we reached the end
     if (pattern[pattern_ptr] == -1) {
       pattern_ptr = 0;
-      state = false;
+      state_ = false;
     }
-    state = !state;
+    state_ = !state_;
 
-    update_port(port_state, pin, state);
+    update_pin(port_, pin_mask_, state_);
   }
 }
 
 void PatternBlinker::restart() {
-  state = false;
+  state_ = false;
   pattern_ptr = 0;
   elapsed = 0;
 }
