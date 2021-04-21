@@ -1,38 +1,35 @@
-#include <avr/io.h>
-
 #include "digital_io.h"
+
+#include <avr/io.h>
+#include <Arduino.h>
+
 #include "globals.h"
 
-volatile uint8_t port_a_mode = DDRA;
-volatile uint8_t port_a_state = PORTA;
-
-volatile uint8_t port_b_mode = DDRB;
-volatile uint8_t port_b_state = PORTB;
-
-bool read_portA(int pin) {
-  return PORTA & (1 << pin);
+bool read_pin(int pin) { 
+  PORT_t* port = digitalPinToPortStruct(pin);
+  return port->IN & digitalPinToBitMask(pin);
 }
 
-bool read_portB(int pin) {
-  return PORTB & (1 << pin);
+void update_pin(int pin, bool value) {
+  PORT_t* port = digitalPinToPortStruct(pin);
+  update_pin(port, digitalPinToBitMask(pin), value);
 }
 
-void update_port(volatile uint8_t* port_state, uint8_t pin, bool value) {
+void update_pin(PORT_t* port, int pin_mask, bool value) {
   if (value) {
-    *port_state |= 1 << pin;
+    port->OUTSET = pin_mask;
   } else {
-    *port_state &= ~(1 << pin);
+    port->OUTCLR = pin_mask;
   }
 }
 
-void set_en5v_pin(bool state) {
-  update_port(&port_a_state, EN5V_PIN, state);
-}
+void set_en5v_pin(bool state) { update_pin(EN5V_PIN, state); }
 
-void set_port_mode(volatile uint8_t* port_mode, int pin, bool output) {
-  if (output) { 
-    *port_mode |= 1 << pin;
+void set_pin_mode(int pin, bool output) {
+  PORT_t* port = digitalPinToPortStruct(pin);
+  if (output) {
+    port->DIRSET = digitalPinToBitMask(pin);
   } else {
-    *port_mode &= ~(1 << pin);
+    port->DIRCLR = digitalPinToBitMask(pin);
   }
 }

@@ -5,39 +5,39 @@
 
 typedef enum {
   BEGIN,
-  WAIT_FOR_POWER_ON,
-  ENTER_POWER_ON_5V_OFF,
-  POWER_ON_5V_OFF,
-  ENTER_POWER_ON_5V_ON,
-  POWER_ON_5V_ON,
-  ENTER_POWER_OFF_5V_ON,
-  POWER_OFF_5V_ON,
-  ENTER_SHUTDOWN,
+  WAIT_VIN_ON,
+  ENT_CHARGING,
+  CHARGING,
+  ENT_ON,
+  ON,
+  ENT_DEPLETING,
+  DEPLETING,
+  ENT_SHUTDOWN,
   SHUTDOWN,
-  ENTER_WATCHDOG_REBOOT,
+  ENT_WATCHDOG_REBOOT,
   WATCHDOG_REBOOT,
-  ENTER_OFF,
+  ENT_OFF,
   OFF,
   NUM_STATES
 } StateType;
 
 void sm_state_BEGIN();
-void sm_state_WAIT_FOR_POWER_ON();
-void sm_state_ENTER_POWER_ON_5V_OFF();
-void sm_state_POWER_ON_5V_OFF();
-void sm_state_ENTER_POWER_ON_5V_ON();
-void sm_state_POWER_ON_5V_ON();
-void sm_state_ENTER_POWER_OFF_5V_ON();
-void sm_state_POWER_OFF_5V_ON();
-void sm_state_ENTER_SHUTDOWN();
+void sm_state_WAIT_VIN_ON();
+void sm_state_ENT_CHARGING();
+void sm_state_CHARGING();
+void sm_state_ENT_ON();
+void sm_state_ON();
+void sm_state_ENT_DEPLETING();
+void sm_state_DEPLETING();
+void sm_state_ENT_SHUTDOWN();
 void sm_state_SHUTDOWN();
-void sm_state_ENTER_WATCHDOG_REBOOT();
+void sm_state_ENT_WATCHDOG_REBOOT();
 void sm_state_WATCHDOG_REBOOT();
-void sm_state_ENTER_OFF();
+void sm_state_ENT_OFF();
 void sm_state_OFF();
 
 void sm_run();
 
-uint8_t get_sm_state();
+StateType get_sm_state();
 
 #endif

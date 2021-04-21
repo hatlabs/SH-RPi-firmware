@@ -1,0 +1,41 @@
+digraph G {
+begin [label="Begin",shape=diamond];
+wait_vin_on [label="Wait for\nVin"];
+ent_CHARGING [label="Enter\ncharging",shape=box];
+CHARGING [label="Charging"];
+ent_ON [label="Enter\non",shape=box];
+ON [label="On"];
+ent_DEPLETING [label="Enter\ndepleting",shape=box];
+DEPLETING [label="Depleting"];
+ent_shutdown [label="Enter\nshutdown",shape=box];
+shutdown [label="Shutdown"];
+ent_watchdog_reboot [label="Enter\nwatchdog\nreboot",shape=box];
+watchdog_reboot [label="Watchdog\nreboot"];
+ent_OFF [label="Enter off",shape=box];
+OFF [label="Off",shape=diamond];
+
+begin -> wait_vin_on [color="red",weight=8];
+wait_vin_on -> wait_vin_on;
+wait_vin_on -> ent_CHARGING [label="Vin>10V"];
+ent_CHARGING -> CHARGING [color="red",weight=8];
+CHARGING -> CHARGING;
+CHARGING -> ent_ON [label="Vcap>1.5V"];
+CHARGING -> ent_OFF [label="Vin<10V"];
+ent_ON -> ON [color="red",label="EN5V=true",weight=8];
+ON -> ON;
+ON -> ent_watchdog_reboot [label="10s"];
+ON -> ent_DEPLETING [label="Vin<10V"];
+ON -> ent_OFF [label="poweroff>1s"];
+ent_DEPLETING -> DEPLETING [color="red",weight=8];
+DEPLETING -> DEPLETING;
+DEPLETING -> ent_watchdog_reboot [label="10s"];
+DEPLETING -> ent_shutdown [label="requested"];
+DEPLETING -> ent_ON [label="Vin>10V"];
+DEPLETING -> ent_OFF [label="Vcap<1.0V\npoweroff>1s"];
+ent_shutdown -> shutdown [color="red",weight=8];
+shutdown -> ent_OFF [label="20s\npoweroff>1s"];
+ent_OFF -> OFF [color="red",label="EN5V=false",weight=8];
+OFF -> begin [label="5s"];
+ent_watchdog_reboot -> watchdog_reboot [color="red",label="EN5V=false",weight=8];
+watchdog_reboot -> begin [label="2s"];
+}

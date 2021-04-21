@@ -3,19 +3,32 @@
 
 #include <stdint.h>
 
-extern volatile uint8_t port_a_mode;
-extern volatile uint8_t port_a_state;
+#include <Arduino.h>
 
-extern volatile uint8_t port_b_mode;
-extern volatile uint8_t port_b_state;
+/**
+ * @brief Write a pin value.
+ * 
+ * Similar to Arduino digitalWrite but assumes the pin is already
+ * in a correct state.
+ * 
+ * @param pin Pin number
+ * @param value Value to set
+ */
+void update_pin(int pin, bool value);
 
-void update_port(volatile uint8_t* port_state, uint8_t pin, bool value);
+void update_pin(PORT_t* port, int pin_mask, bool value);
 
 void set_en5v_pin(bool state);
 
-bool read_portA(int pin);
-bool read_portB(int pin);
-
-void set_port_mode(volatile uint8_t* port_mode, int pin, bool output);
+/**
+ * @brief Read a pin value.
+ * 
+ * This is pretty much same as the Arduino standard digitalRead except that
+ * it skips a lot of safety checks present in digitalRead
+ * 
+ * @param pin Pin number
+ * @return pin boolean state
+ */
+bool read_pin(int pin);
 
 #endif
