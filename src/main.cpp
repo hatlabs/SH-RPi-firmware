@@ -40,7 +40,7 @@
 
 #define I2C_ADDRESS 0x6d
 
-#define FW_VERSION 4
+#define FW_VERSION 5
 
 int slow_pattern[] = {2050, 2003, -1};
 
@@ -203,7 +203,10 @@ void loop() {
   // other loops
   if (v_reading_elapsed > 47) {
     v_reading_elapsed = 0;
+    // read twice to ensure the ADC output is stable
+    analogRead(V_CAP_ADC_PIN);
     v_supercap = analogRead(V_CAP_ADC_PIN);
+    analogRead(V_IN_ADC_PIN);
     v_in = analogRead(V_IN_ADC_PIN);
     if (read_pin(GPIO_POWEROFF_PIN) == true) {
       gpio_poweroff_elapsed = 0;
