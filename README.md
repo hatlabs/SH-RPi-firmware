@@ -2,7 +2,7 @@
 
 ## Introduction
 
-[Sailor Hat for Raspberry Pi](https://github.com/mairas/sailor-hat-hardware)
+[Sailor Hat for Raspberry Pi](https://hatlabs.github.io/sh-rpi/)
 is a Raspberry Pi power management and CAN bus
 controller board for marine and automotive use. The main features are:
 
