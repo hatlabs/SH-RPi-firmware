@@ -28,7 +28,7 @@
 #define GPIO_OFF_TIME_LIMIT 1000
 
 // Vcap voltage at which 5V is enabled
-#define VCAP_POWER_ON 1.8
+#define VCAP_POWER_ON 2.5
 // Vcap voltage at which 5V is disabled
 #define VCAP_POWER_OFF 1.0
 // max scaling value for Vcap voltage
