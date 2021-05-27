@@ -19,7 +19,7 @@ wait_vin_on -> wait_vin_on;
 wait_vin_on -> ent_CHARGING [label="Vin>10V"];
 ent_CHARGING -> CHARGING [color="red",weight=8];
 CHARGING -> CHARGING;
-CHARGING -> ent_ON [label="Vcap>1.5V"];
+CHARGING -> ent_ON [label="Vcap>2.5V"];
 CHARGING -> ent_OFF [label="Vin<10V"];
 ent_ON -> ON [color="red",label="EN5V=true",weight=8];
 ON -> ON;
