@@ -19,6 +19,10 @@ void (*state_machine[])(void) = {
     sm_state_WATCHDOG_REBOOT,
     sm_state_ENT_OFF,
     sm_state_OFF,
+    sm_state_ENT_SLEEP_SHUTDOWN,
+    sm_state_SLEEP_SHUTDOWN,
+    sm_state_ENT_SLEEP,
+    sm_state_SLEEP
 };
 
 StateType sm_state = BEGIN;
@@ -88,6 +92,11 @@ void sm_state_ON() {
   }
   if (watchdog_limit && (watchdog_elapsed > watchdog_limit)) {
     sm_state = ENT_WATCHDOG_REBOOT;
+    return;
+  }
+
+  if (sleep_requested) {
+    sm_state = ENT_SLEEP_SHUTDOWN;
     return;
   }
 
@@ -189,6 +198,36 @@ void sm_state_OFF() {
     sm_state = BEGIN;
   }
 }
+
+void sm_state_ENT_SLEEP_SHUTDOWN() {
+  status_blinker.set_pattern(shutdown_pattern);
+  // ignore watchdog
+  watchdog_limit = 0;
+  elapsed_shutdown = 0;
+  sm_state = SLEEP_SHUTDOWN;
+}
+
+void sm_state_SLEEP_SHUTDOWN() {
+  if ((gpio_poweroff_elapsed > GPIO_OFF_TIME_LIMIT) ||
+      (elapsed_shutdown > SHUTDOWN_WAIT_DURATION)) {
+    sm_state = ENT_SLEEP;
+  }
+
+}
+
+void sm_state_ENT_SLEEP() {
+  set_en5v_pin(false);
+  // we're not dead, set a blink pattern
+  status_blinker.set_pattern(off_pattern);
+  sm_state = SLEEP;
+}
+
+void sm_state_SLEEP() {
+  if (rtc_wakeup_triggered || ext_wakeup_triggered) {
+    sm_state = BEGIN;
+  }
+}
+
 
 // function to run the state machine
 

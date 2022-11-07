@@ -29,6 +29,8 @@
 // - Read 0x16: Query watchdog elapsed
 // - Read 0x20: Query DC IN voltage
 // - Read 0x21: Query supercap voltage
+// - Read 0x22: Query DC IN current
+// - Write 0x30: [ANY]: Initiate shutdown
 
 // LEDs:
 
@@ -57,6 +59,10 @@ bool watchdog_value_changed = false;
 elapsedMillis gpio_poweroff_elapsed;
 
 bool shutdown_requested = false;
+bool sleep_requested = false;
+
+bool rtc_wakeup_triggered = false;
+bool ext_wakeup_triggered = false;
 
 uint8_t i2c_register;
 
@@ -66,6 +72,7 @@ unsigned int power_off_vcap_voltage =
 
 unsigned int v_supercap = 0;
 unsigned int v_in = 0;
+unsigned int i_in = 0;
 
 void receive_I2C_event(int bytes) {
   // watchdog is considered zeroed after any input
@@ -107,6 +114,15 @@ void receive_I2C_event(int bytes) {
         // Set shutdown initiated
         Wire.read();
         shutdown_requested = true;
+        break;
+      case 0x31:
+        // Set sleep initiated
+        Wire.read();
+        sleep_requested = true;
+        break;
+      default:
+        // Ignore other registers
+        Wire.read();
         break;
     }
   }
@@ -176,7 +192,8 @@ void request_I2C_event() {
       Wire.write(uint8_t(v_supercap / 4));
       break;
     case 0x22:
-      Wire.write(0x22);
+      // Query DC IN current
+      Wire.write(uint8_t(i_in / 4));
       break;
     default:
       Wire.write(0xff);
@@ -200,19 +217,24 @@ void setup() {
 void loop() {
   static elapsedMillis v_reading_elapsed;
   // no need to read the values at every iteration;
-  // 47 ms selected to descynchronize the reading from
+  // 23 ms selected to descynchronize the reading from
   // other loops
-  if (v_reading_elapsed > 47) {
+  if (v_reading_elapsed > 23) {
     v_reading_elapsed = 0;
     // read twice to ensure the ADC output is stable
     analogRead(V_CAP_ADC_PIN);
     v_supercap = analogRead(V_CAP_ADC_PIN);
     analogRead(V_IN_ADC_PIN);
     v_in = analogRead(V_IN_ADC_PIN);
+    analogRead(I_IN_ADC_PIN);
+    i_in = analogRead(I_IN_ADC_PIN);
     if (read_pin(GPIO_POWEROFF_PIN) == true) {
       gpio_poweroff_elapsed = 0;
     }
 
+    rtc_wakeup_triggered = !read_pin(RTC_INT_PIN);
+    ext_wakeup_triggered = !read_pin(EXT_INT_PIN);
+    
     // v_supercap and v_dcin have 10 bit range, 0..1023
     // ratio has 15 bit range, 0..32767
 

@@ -14,14 +14,14 @@ WATCHDOG_REBOOT [label="Watchdog\nreboot"];
 ENT_OFF [label="Enter off",shape=box];
 OFF [label="Off",shape=diamond];
 
-ENT_SLEEP_SHUTDOWN [label="Enter\nsleep\nshutdown",shape=box, color=gray];
-SLEEP_SHUTDOWN [label="Sleep\nshutdown", color=gray];
-ENT_SLEEP [label="Enter\nsleep",shape=box, color=gray];
-SLEEP [label="Sleep", color=gray];
+ENT_SLEEP_SHUTDOWN [label="Enter\nsleep\nshutdown",shape=box];
+SLEEP_SHUTDOWN [label="Sleep\nshutdown"];
+ENT_SLEEP [label="Enter\nsleep",shape=box];
+SLEEP [label="Sleep"];
 
 BEGIN -> WAIT_VIN_ON [color="red",weight=8];
 WAIT_VIN_ON -> WAIT_VIN_ON;
-WAIT_VIN_ON -> ENT_CHARGING [label="Vin>10V"];
+WAIT_VIN_ON -> ENT_CHARGING [label="Vin>9V"];
 ENT_CHARGING -> CHARGING [color="red",weight=8];
 CHARGING -> CHARGING;
 CHARGING -> ENT_ON [label="Vcap>6V"];

@@ -81,6 +81,9 @@ extern bool watchdog_value_changed;
 // milliseconds elapsed since gpio-poweroff pin was last high
 extern elapsedMillis gpio_poweroff_elapsed;
 
+extern bool rtc_wakeup_triggered;
+extern bool ext_wakeup_triggered;
+
 extern uint8_t i2c_register;
 
 extern unsigned int power_on_vcap_voltage;
@@ -90,5 +93,6 @@ extern unsigned int v_supercap;
 extern unsigned int v_in;
 
 extern bool shutdown_requested;
+extern bool sleep_requested;
 
 #endif
