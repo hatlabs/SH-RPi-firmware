@@ -45,9 +45,9 @@
 int slow_pattern[] = {2050, 2003, -1};
 
 // define external variables declared in globals.h
-RatioBlinker led_vin_blinker(LED_VIN_PIN, 200, 0.);
-RatioBlinker supercap_blinker(LED_VCAP_PIN, 210, 0.);
-PatternBlinker status_blinker(LED_STATUS_PIN, slow_pattern);
+RatioBlinker led_vin_blinker(LED1_PIN, 200, 0.);
+RatioBlinker supercap_blinker(LED2_PIN, 210, 0.);
+PatternBlinker status_blinker(LED3_PIN, slow_pattern);
 volatile bool watchdog_reset = false;
 elapsedMillis watchdog_elapsed;
 volatile int new_watchdog_limit = -1;
@@ -187,9 +187,10 @@ void setup() {
   analogReference(INTERNAL1V1);  // set analog reference to 1.1V
 
   pinMode(EN5V_PIN, OUTPUT);
-  pinMode(LED_VIN_PIN, OUTPUT);
-  pinMode(LED_VCAP_PIN, OUTPUT);
-  pinMode(LED_STATUS_PIN, OUTPUT);
+  pinMode(LED1_PIN, OUTPUT);
+  pinMode(LED2_PIN, OUTPUT);
+  pinMode(LED3_PIN, OUTPUT);
+  pinMode(LED4_PIN, OUTPUT);
 
   Wire.begin(I2C_ADDRESS);
   Wire.onRequest(request_I2C_event);

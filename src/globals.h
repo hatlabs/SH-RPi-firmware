@@ -8,15 +8,26 @@
 //////
 // Hardware pin definitions
 
+// analog input pins
+
 #define V_IN_ADC_PIN PIN_PA6
-
 #define V_CAP_ADC_PIN PIN_PA7
+#define I_IN_ADC_PIN PIN_PC3
 
-#define LED_VIN_PIN PIN_PA3
-#define LED_VCAP_PIN PIN_PA4
-#define LED_STATUS_PIN PIN_PA1
+// digital input pins
 
-#define EN5V_PIN PIN_PA5
+#define POWER_TOGGLE_PIN PIN_PC0
+#define EXT_INT_PIN PIN_PC1
+#define RTC_INT_PIN PIN_PC2
+
+// digital or PWM output pins
+
+#define LED1_PIN PIN_PA2
+#define LED2_PIN PIN_PA3
+#define LED3_PIN PIN_PA4
+#define LED4_PIN PIN_PA5
+
+#define EN5V_PIN PIN_PB4
 
 // same as SDA
 #define GPIO_POWEROFF_PIN PIN_PB1
