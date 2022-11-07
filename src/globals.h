@@ -28,18 +28,18 @@
 #define GPIO_OFF_TIME_LIMIT 1000
 
 // Vcap voltage at which 5V is enabled
-#define VCAP_POWER_ON 2.5
+#define VCAP_POWER_ON 6.0
 // Vcap voltage at which 5V is disabled
-#define VCAP_POWER_OFF 1.0
+#define VCAP_POWER_OFF 5.0
 // max scaling value for Vcap voltage
-#define VCAP_MAX 2.75
+#define VCAP_MAX 9.35
 // integer scaling factor for Vcap voltage
 #define VCAP_SCALE 1024
 
 // blink the Vin led below this voltage
 #define VIN_LOW 11.5
 // turn off below this voltage
-#define VIN_OFF 10.0
+#define VIN_OFF 9.0
 // max voltage for Vin
 #define VIN_MAX 32.1
 // Vin scaling factor
