@@ -155,22 +155,6 @@ void sm_state_SHUTDOWN() {
   }
 }
 
-elapsedMillis elapsed_off;
-
-void sm_state_ENT_OFF() {
-  set_en5v_pin(false);
-  // in case we're not dead, set a blink pattern
-  status_blinker.set_pattern(off_pattern);
-  sm_state = OFF;
-}
-
-void sm_state_OFF() {
-  if (elapsed_off > OFF_STATE_DURATION) {
-    // if we're still alive, jump back to begin
-    sm_state = BEGIN;
-  }
-}
-
 elapsedMillis elapsed_reboot;
 
 // PATTERN: *_
@@ -186,6 +170,22 @@ void sm_state_ENT_WATCHDOG_REBOOT() {
 
 void sm_state_WATCHDOG_REBOOT() {
   if (elapsed_reboot > WATCHDOG_REBOOT_DURATION) {
+    sm_state = BEGIN;
+  }
+}
+
+elapsedMillis elapsed_off;
+
+void sm_state_ENT_OFF() {
+  set_en5v_pin(false);
+  // in case we're not dead, set a blink pattern
+  status_blinker.set_pattern(off_pattern);
+  sm_state = OFF;
+}
+
+void sm_state_OFF() {
+  if (elapsed_off > OFF_STATE_DURATION) {
+    // if we're still alive, jump back to begin
     sm_state = BEGIN;
   }
 }
