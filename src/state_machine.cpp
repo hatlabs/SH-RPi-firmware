@@ -36,7 +36,12 @@ StateType sm_state = BEGIN;
 StateType get_sm_state() { return sm_state; }
 
 // PATTERN: *___________________
-int off_pattern[] = {50, 950, -1};
+
+LedPatternSegment power_off_pattern[] = {
+    {{255, 255, 255, 255}, 0b0000, 50},
+    {{0, 0, 0, 0}, 0b1111, 3900},
+    {{0, 0, 0, 0}, 0b0000, 0},
+};
 
 void sm_state_BEGIN() {
   set_en5v_pin(false);
@@ -45,7 +50,7 @@ void sm_state_BEGIN() {
   watchdog_limit = 0;
   gpio_poweroff_elapsed = 0;
 
-  status_blinker.set_pattern(off_pattern);
+  led_blinker.set_pattern(power_off_pattern);
 
   sm_state = WAIT_VIN_ON;
 }
@@ -57,11 +62,14 @@ void sm_state_WAIT_VIN_ON() {
   }
 }
 
-// PATTERN: *************_*_*_*_
-int charging_pattern[] = {650, 50, 50, 50, 50, 50, 50, 50, -1};
+// just show the underlying bar display
+LedPatternSegment no_pattern[] = {
+    {{0, 0, 0, 0}, 0b0000, 100},
+    {{0, 0, 0, 0}, 0b0000, 0},
+};
 
 void sm_state_ENT_CHARGING() {
-  status_blinker.set_pattern(charging_pattern);
+  led_blinker.set_pattern(no_pattern);
   sm_state = CHARGING;
 }
 
@@ -75,24 +83,24 @@ void sm_state_CHARGING() {
   }
 }
 
-// PATTERN: ********************
-int solid_on_pattern[] = {1000, 0, -1};
-
 void sm_state_ENT_ON() {
   set_en5v_pin(true);
-  status_blinker.set_pattern(solid_on_pattern);
+  led_blinker.set_pattern(no_pattern);
   sm_state = ON;
 }
 
-// PATTERN: *******************_
-int watchdog_enabled_pattern[] = {950, 50, -1};
+LedPatternSegment watchdog_pattern[] = {
+    {{255, 255, 255, 255}, 0b0000, 3950},
+    {{0, 0, 0, 0}, 0b1111, 50},
+    {{0, 0, 0, 0}, 0b0000, 0},
+};
 
 void sm_state_ON() {
   if (watchdog_value_changed) {
     if (watchdog_limit) {
-      status_blinker.set_pattern(watchdog_enabled_pattern);
+      led_blinker.set_pattern(watchdog_pattern);
     } else {
-      status_blinker.set_pattern(solid_on_pattern);
+      led_blinker.set_pattern(no_pattern);
     }
     watchdog_value_changed = false;
   }
@@ -117,11 +125,15 @@ void sm_state_ON() {
   }
 }
 
-// PATTERN: *_*_*_*_____________
-int draining_pattern[] = {50, 50, 50, 50, 50, 50, 50, 650, -1};
+LedPatternSegment depleting_pattern[] = {
+    {{0, 0, 0, 255}, 0b0001, 50}, {{0, 0, 255, 0}, 0b0011, 50},
+    {{0, 255, 0, 0}, 0b0110, 50}, {{255, 0, 0, 0}, 0b1100, 50},
+    {{0, 0, 0, 0}, 0b1000, 50},   {{0, 0, 0, 0}, 0b0000, 750},
+    {{0, 0, 0, 0}, 0b0000, 0},
+};
 
 void sm_state_ENT_DEPLETING() {
-  status_blinker.set_pattern(draining_pattern);
+  led_blinker.set_pattern(depleting_pattern);
   sm_state = DEPLETING;
 }
 
@@ -152,11 +164,14 @@ void sm_state_DEPLETING() {
 
 elapsedMillis elapsed_shutdown;
 
-// PATTERN: ****____
-int shutdown_pattern[] = {200, 200, -1};
+LedPatternSegment shutdown_pattern[] = {
+    {{0, 0, 0, 0}, 0b1111, 200}, {{0, 0, 0, 0}, 0b0000, 100},
+    {{0, 0, 0, 0}, 0b1111, 200}, {{0, 0, 0, 0}, 0b0000, 1000},
+    {{0, 0, 0, 0}, 0b0000, 0},
+};
 
 void sm_state_ENT_SHUTDOWN() {
-  status_blinker.set_pattern(shutdown_pattern);
+  led_blinker.set_pattern(shutdown_pattern);
   // ignore watchdog
   watchdog_limit = 0;
   elapsed_shutdown = 0;
@@ -172,14 +187,17 @@ void sm_state_SHUTDOWN() {
 
 elapsedMillis elapsed_reboot;
 
-// PATTERN: *_
-int watchdog_pattern[] = {50, 50, -1};
+LedPatternSegment watchdog_reboot_pattern[] = {
+    {{255, 0, 255, 0}, 0b1111, 200},
+    {{0, 255, 0, 255}, 0b1111, 200},
+    {{0, 0, 0, 0}, 0b0000, 0},
+};
 
 void sm_state_ENT_WATCHDOG_REBOOT() {
   elapsed_reboot = 0;
   watchdog_limit = 0;
   set_en5v_pin(false);
-  status_blinker.set_pattern(watchdog_pattern);
+  led_blinker.set_pattern(watchdog_reboot_pattern);
   sm_state = WATCHDOG_REBOOT;
 }
 
@@ -194,7 +212,7 @@ elapsedMillis elapsed_off;
 void sm_state_ENT_OFF() {
   set_en5v_pin(false);
   // in case we're not dead, set a blink pattern
-  status_blinker.set_pattern(off_pattern);
+  led_blinker.set_pattern(power_off_pattern);
   sm_state = OFF;
 }
 
@@ -206,7 +224,7 @@ void sm_state_OFF() {
 }
 
 void sm_state_ENT_SLEEP_SHUTDOWN() {
-  status_blinker.set_pattern(shutdown_pattern);
+  led_blinker.set_pattern(shutdown_pattern);
   // ignore watchdog
   watchdog_limit = 0;
   elapsed_shutdown = 0;
@@ -218,13 +236,18 @@ void sm_state_SLEEP_SHUTDOWN() {
       (elapsed_shutdown > SHUTDOWN_WAIT_DURATION)) {
     sm_state = ENT_SLEEP;
   }
-
 }
+
+LedPatternSegment sleep_pattern[] = {
+    {{255, 255, 255, 255}, 0b1111, 100}, {{0, 0, 0, 0}, 0b0000, 200},
+    {{255, 255, 255, 255}, 0b1111, 100}, {{0, 0, 0, 0}, 0b0000, 2000},
+    {{0, 0, 0, 0}, 0b0000, 0},
+};
 
 void sm_state_ENT_SLEEP() {
   set_en5v_pin(false);
   // we're not dead, set a blink pattern
-  status_blinker.set_pattern(off_pattern);
+  led_blinker.set_pattern(sleep_pattern);
   sm_state = SLEEP;
 }
 

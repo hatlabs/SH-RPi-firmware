@@ -44,12 +44,12 @@
 
 #define FW_VERSION 5
 
-int slow_pattern[] = {2050, 2003, -1};
+LedPatternSegment off_pattern[] = {
+    {{0, 0, 0, 0}, 0b1111, 50},
+    {{0, 0, 0, 0}, 0b0000, 0},
+};
 
 // define external variables declared in globals.h
-RatioBlinker led_vin_blinker(LED1_PIN, 200, 0.);
-RatioBlinker supercap_blinker(LED2_PIN, 210, 0.);
-PatternBlinker status_blinker(LED3_PIN, slow_pattern);
 volatile bool watchdog_reset = false;
 elapsedMillis watchdog_elapsed;
 volatile int new_watchdog_limit = -1;
@@ -57,6 +57,10 @@ int watchdog_limit = 0;
 bool watchdog_value_changed = false;
 
 elapsedMillis gpio_poweroff_elapsed;
+
+int led_pins[] = {LED1_PIN, LED2_PIN, LED3_PIN, LED4_PIN};
+constexpr uint32_t led_bar_knee_value = (uint32_t)(((uint32_t)-1) * VCAP_POWER_ON/VCAP_MAX);
+LedBlinker led_blinker(led_pins, off_pattern, led_bar_knee_value);
 
 bool shutdown_requested = false;
 bool sleep_requested = false;
@@ -236,22 +240,9 @@ void loop() {
     rtc_wakeup_triggered = !read_pin(RTC_INT_PIN);
     ext_wakeup_triggered = !read_pin(EXT_INT_PIN);
     
-    // v_supercap and v_dcin have 10 bit range, 0..1023
-    // ratio has 15 bit range, 0..32767
+     // v_supercap is 10-bit while set_bar input is 16-bit - shift up by 6 bits
+     led_blinker.set_bar(v_supercap << 6);
 
-    supercap_blinker.set_ratio(v_supercap *
-                               int(BLINKER_PERIOD_SCALE / VCAP_SCALE));
-
-    if (v_in > int(VIN_LOW / VIN_MAX * VIN_SCALE)) {
-      // LED always on
-      led_vin_blinker.set_ratio(BLINKER_PERIOD_SCALE);
-    } else if (v_in > int(VIN_OFF / VIN_MAX * VIN_SCALE)) {
-      // LED 50% on
-      led_vin_blinker.set_ratio(int(BLINKER_PERIOD_SCALE / 2));
-    } else {
-      // LED off
-      led_vin_blinker.set_ratio(0);
-    }
   }
 
 
@@ -267,9 +258,7 @@ void loop() {
    watchdog_reset = false;
   }
 
-  led_vin_blinker.tick();
-  supercap_blinker.tick();
-  status_blinker.tick();
+  led_blinker.tick();
 
   sm_run();
 }

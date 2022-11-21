@@ -53,8 +53,6 @@
 // maximum value indicated by the LED bar
 #define LED_BAR_MAX 9.0
 
-// blink the Vin led below this voltage
-#define VIN_LOW 11.5
 // turn off below this voltage
 #define VIN_OFF 9.0
 // max voltage for Vin
