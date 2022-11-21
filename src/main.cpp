@@ -14,7 +14,8 @@
 // Act as I2C slave at address 0x6d (or whatever).
 // Recognize following commands:
 // - Read 0x01: Query hardware version
-// - Read 0x02: Query firmware version
+// - Read 0x02: Query legacy firmware version
+// - Read 0x03: Query firmware version
 // - Read 0x10: Query Raspi power state
 // - Write 0x10 0x00: Set Raspi power off
 // - Write 0x10 0x01: Set Raspi power on (who'd ever send that?)
@@ -30,6 +31,7 @@
 // - Read 0x20: Query DC IN voltage
 // - Read 0x21: Query supercap voltage
 // - Read 0x22: Query DC IN current
+// - Read 0x23: Query MCU temperature
 // - Write 0x30: [ANY]: Initiate shutdown
 
 // LEDs:
@@ -42,7 +44,8 @@
 
 #define I2C_ADDRESS 0x6d
 
-#define FW_VERSION 5
+#define LEGACY_FW_VERSION 0xff
+#define FW_VERSION 0x02000001
 
 LedPatternSegment off_pattern[] = {
     {{0, 0, 0, 0}, 0b1111, 50},
@@ -59,7 +62,7 @@ bool watchdog_value_changed = false;
 elapsedMillis gpio_poweroff_elapsed;
 
 int led_pins[] = {LED1_PIN, LED2_PIN, LED3_PIN, LED4_PIN};
-constexpr uint32_t led_bar_knee_value = (uint32_t)(((uint32_t)-1) * VCAP_POWER_ON/VCAP_MAX);
+constexpr uint16_t led_bar_knee_value = uint16_t(((uint16_t)-1) * (VCAP_POWER_ON/VCAP_MAX));
 LedBlinker led_blinker(led_pins, off_pattern, led_bar_knee_value);
 
 bool shutdown_requested = false;
@@ -76,7 +79,13 @@ unsigned int power_off_vcap_voltage =
 
 unsigned int v_supercap = 0;
 unsigned int v_in = 0;
-unsigned int i_in = 0;
+int i_in = 0;
+uint16_t temperature_K = 0;
+
+// factory calibration of the internal temperature sensor
+int8_t sigrow_offset = SIGROW.TEMPSENSE1;
+uint8_t sigrow_gain = SIGROW.TEMPSENSE0;
+
 
 void receive_I2C_event(int bytes) {
   // watchdog is considered zeroed after any input
@@ -148,8 +157,15 @@ void request_I2C_event() {
       Wire.write(0);
       break;
     case 0x02:
+      // Query legacy firmware version
+      Wire.write(LEGACY_FW_VERSION);
+      break;
+    case 0x03:
       // Query firmware version
-      Wire.write(FW_VERSION);
+      Wire.write((FW_VERSION>>24) & 0xff);
+      Wire.write((FW_VERSION>>16) & 0xff);
+      Wire.write((FW_VERSION>>8) & 0xff);
+      Wire.write((FW_VERSION) & 0xff);
       break;
     case 0x10:
       // Query 5V power state
@@ -199,6 +215,11 @@ void request_I2C_event() {
       // Query DC IN current
       Wire.write(uint8_t(i_in / 4));
       break;
+    case 0x23:
+      // Query MCU temperature
+      Wire.write(uint8_t(temperature_K >> 8));
+      Wire.write(uint8_t(temperature_K & 0xff));
+      break;
     default:
       Wire.write(0xff);
   }
@@ -212,6 +233,8 @@ void setup() {
   pinMode(LED2_PIN, OUTPUT);
   pinMode(LED3_PIN, OUTPUT);
   pinMode(LED4_PIN, OUTPUT);
+
+  // set up I2C
 
   Wire.begin(I2C_ADDRESS);
   Wire.onRequest(request_I2C_event);
@@ -239,6 +262,20 @@ void loop() {
     v_in = analogRead(V_IN_ADC_PIN);
     analogRead(I_IN_ADC_PIN);
     i_in = analogRead(I_IN_ADC_PIN);
+    if (i_in < 0) {
+      i_in = 0;
+    }
+
+    analogRead(ADC_TEMPERATURE);
+    int adc_reading = analogRead(ADC_TEMPERATURE);
+    // temperature compensation code from the datasheet page 435
+    uint32_t temp_temp = adc_reading - sigrow_offset;
+    temp_temp *= sigrow_gain;
+    temp_temp += 0x80;
+    temp_temp >>= 1;
+    temperature_K = temp_temp;
+
+    // A low value of GPIO_POWEROFF_PIN indicates that the host has shut down
     if (read_pin(GPIO_POWEROFF_PIN) == true) {
       gpio_poweroff_elapsed = 0;
     }
@@ -246,8 +283,13 @@ void loop() {
     rtc_wakeup_triggered = !read_pin(RTC_INT_PIN);
     ext_wakeup_triggered = !read_pin(EXT_INT_PIN);
     
-     // v_supercap is 10-bit while set_bar input is 16-bit - shift up by 6 bits
-     led_blinker.set_bar(v_supercap << 6);
+    // if POWER_TOGGLE_PIN is pulled low, initiate shutdown
+    if (read_pin(POWER_TOGGLE_PIN) == false) {
+      shutdown_requested = true;
+    }
+
+    // v_supercap is 10-bit while set_bar input is 16-bit - shift up by 6 bits
+    led_blinker.set_bar(v_supercap << 6);
 
   }
 
@@ -268,6 +310,8 @@ void loop() {
     Serial.println(rtc_wakeup_triggered);
     Serial.print("ext_wakeup_triggered: ");
     Serial.println(ext_wakeup_triggered);
+    Serial.print("temperature: ");
+    Serial.println(temperature_K);
     Serial.println();
   }
 
