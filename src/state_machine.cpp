@@ -4,25 +4,31 @@
 #include "globals.h"
 
 // take care to have all enum values of StateType present
-void (*state_machine[])(void) = {
-    sm_state_BEGIN,
-    sm_state_WAIT_VIN_ON,
-    sm_state_ENT_CHARGING,
-    sm_state_CHARGING,
-    sm_state_ENT_ON,
-    sm_state_ON,
-    sm_state_ENT_DEPLETING,
-    sm_state_DEPLETING,
-    sm_state_ENT_SHUTDOWN,
-    sm_state_SHUTDOWN,
-    sm_state_ENT_WATCHDOG_REBOOT,
-    sm_state_WATCHDOG_REBOOT,
-    sm_state_ENT_OFF,
-    sm_state_OFF,
-    sm_state_ENT_SLEEP_SHUTDOWN,
-    sm_state_SLEEP_SHUTDOWN,
-    sm_state_ENT_SLEEP,
-    sm_state_SLEEP
+void (*state_machine[])(void) = {sm_state_BEGIN,
+                                 sm_state_WAIT_VIN_ON,
+                                 sm_state_ENT_CHARGING,
+                                 sm_state_CHARGING,
+                                 sm_state_ENT_ON,
+                                 sm_state_ON,
+                                 sm_state_ENT_DEPLETING,
+                                 sm_state_DEPLETING,
+                                 sm_state_ENT_SHUTDOWN,
+                                 sm_state_SHUTDOWN,
+                                 sm_state_ENT_WATCHDOG_REBOOT,
+                                 sm_state_WATCHDOG_REBOOT,
+                                 sm_state_ENT_OFF,
+                                 sm_state_OFF,
+                                 sm_state_ENT_SLEEP_SHUTDOWN,
+                                 sm_state_SLEEP_SHUTDOWN,
+                                 sm_state_ENT_SLEEP,
+                                 sm_state_SLEEP};
+
+char *state_names[] = {
+    "BEGIN",        "WAIT_VIN_ON", "ENT_CHARGING",        "CHARGING",
+    "ENT_ON",       "ON",          "ENT_DEPLETING",       "DEPLETING",
+    "ENT_SHUTDOWN", "SHUTDOWN",    "ENT_WATCHDOG_REBOOT", "WATCHDOG_REBOOT",
+    "ENT_OFF",      "OFF",         "ENT_SLEEP_SHUTDOWN",  "SLEEP_SHUTDOWN",
+    "ENT_SLEEP",    "SLEEP",
 };
 
 StateType sm_state = BEGIN;
@@ -228,10 +234,15 @@ void sm_state_SLEEP() {
   }
 }
 
-
 // function to run the state machine
 
 void sm_run() {
+  static uint32_t last_state = BEGIN;
+  if (last_state != sm_state) {
+    Serial.print("New state: ");
+    Serial.println(state_names[sm_state]);
+    last_state = sm_state;
+  }
   if (sm_state < NUM_STATES) {
     // call the function for the state
     (*state_machine[sm_state])();

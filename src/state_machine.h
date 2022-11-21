@@ -25,6 +25,8 @@ typedef enum {
   NUM_STATES
 } StateType;
 
+extern char *state_names[];
+
 void sm_state_BEGIN();
 void sm_state_WAIT_VIN_ON();
 void sm_state_ENT_CHARGING();
