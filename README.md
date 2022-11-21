@@ -18,6 +18,16 @@ fetch any dependencies and build the project.
 
 ## Flashing
 
+# Required Hardware
+
+A simple SerialUPDI programmer seems to be the best bet for flashing the MCU.
+As of now (2022-11-20), the `avrdude` version provided by PlatformIO needs to
+be updated to support the `serialupdi` protocol. Download and/or install
+`avrdude` 7.0 or later and then copy `avrdude` and `avrdude.conf` to the
+`~/.platformio/packages/tool-avrdude-megaavr` directory.
+
+# Flashing Operation
+
 Flashing the device is also done using PlatformIO.
 
 The flashing harness is documented at the [Updating the firmware](https://hatlabs.github.io/sh-rpi/pages/software/#updating-the-firmware) section of the documentation.
