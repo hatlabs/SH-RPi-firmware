@@ -216,9 +216,15 @@ void setup() {
   Wire.begin(I2C_ADDRESS);
   Wire.onRequest(request_I2C_event);
   Wire.onReceive(receive_I2C_event);
+
+  // setup serial port
+  Serial.begin(38400);
+  delay(100);
+  Serial.println("Starting up...");
 }
 
 void loop() {
+  static elapsedMillis serial_output_elapsed = 0;
   static elapsedMillis v_reading_elapsed = 0;
 
   // no need to read the values at every iteration;
@@ -245,6 +251,25 @@ void loop() {
 
   }
 
+  if (serial_output_elapsed > 1000) {
+    serial_output_elapsed = 0;
+
+    //Serial.print("0123456789");
+    Serial.print("V_sup: ");
+    Serial.println(v_supercap);
+    
+    Serial.print(" V_in: ");
+    Serial.println(v_in);
+    Serial.print("I_in: ");
+    Serial.println(i_in);
+    Serial.print("gpio_poweroff_elapsed: ");
+    Serial.println(gpio_poweroff_elapsed);
+    Serial.print("rtc_wakeup_triggered: ");
+    Serial.println(rtc_wakeup_triggered);
+    Serial.print("ext_wakeup_triggered: ");
+    Serial.println(ext_wakeup_triggered);
+    Serial.println();
+  }
 
 
   if (watchdog_reset) {
