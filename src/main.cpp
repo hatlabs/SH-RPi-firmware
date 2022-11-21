@@ -215,7 +215,8 @@ void setup() {
 }
 
 void loop() {
-  static elapsedMillis v_reading_elapsed;
+  static elapsedMillis v_reading_elapsed = 0;
+
   // no need to read the values at every iteration;
   // 23 ms selected to descynchronize the reading from
   // other loops
@@ -253,15 +254,17 @@ void loop() {
     }
   }
 
-  if (watchdog_reset) {
-    if (new_watchdog_limit != -1) {
-      watchdog_value_changed = true;
-      watchdog_limit = new_watchdog_limit;
-      new_watchdog_limit = -1;
-    }
 
-    watchdog_elapsed = 0;
-    watchdog_reset = false;
+
+  if (watchdog_reset) {
+   if (new_watchdog_limit != -1) {
+     watchdog_value_changed = true;
+     watchdog_limit = new_watchdog_limit;
+     new_watchdog_limit = -1;
+   }
+
+   watchdog_elapsed = 0;
+   watchdog_reset = false;
   }
 
   led_vin_blinker.tick();
