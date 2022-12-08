@@ -44,9 +44,6 @@
 
 #define I2C_ADDRESS 0x6d
 
-#define LEGACY_FW_VERSION 0xff
-#define FW_VERSION 0x02000001
-
 LedPatternSegment off_pattern[] = {
     {{0, 0, 0, 0}, 0b1111, 50},
     {{0, 0, 0, 0}, 0b0000, 0},

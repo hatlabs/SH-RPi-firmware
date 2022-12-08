@@ -1,6 +1,13 @@
 #ifndef SH_RPI_FIRMWARE_SRC_CONSTANTS_H_
 #define SH_RPI_FIRMWARE_SRC_CONSTANTS_H_
 
+
+// HW version provided by the Legacy version I2C register
+#define LEGACY_FW_VERSION 0xff
+
+// HW version provided by the new I2C register
+#define FW_VERSION 0x02000001
+
 //////
 // Hardware pin definitions
 
