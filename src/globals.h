@@ -35,7 +35,7 @@ extern unsigned int power_off_vcap_voltage;
 
 extern unsigned int v_supercap;
 extern unsigned int v_in;
-extern int i_in;
+extern unsigned int i_in;
 extern uint16_t temperature_K;
 
 extern bool shutdown_requested;

@@ -2,6 +2,7 @@
 #include <Wire.h>
 #include <avr/io.h>
 
+#include "analog_io.h"
 #include "blinker.h"
 #include "digital_io.h"
 #include "globals.h"
@@ -77,7 +78,7 @@ unsigned int power_off_vcap_voltage =
 
 unsigned int v_supercap = 0;
 unsigned int v_in = 0;
-int i_in = 0;
+unsigned int i_in = 0;
 uint16_t temperature_K = 0;
 
 // factory calibration of the internal temperature sensor
@@ -86,7 +87,9 @@ uint8_t sigrow_gain = SIGROW.TEMPSENSE0;
 
 
 void setup() {
-  analogReference(INTERNAL1V1);  // set analog reference to 1.1V
+  init_ADC1();
+  att1s_analog_reference_adc0(INTERNAL1V1);  // set ADC0 reference to 1.1V
+  att1s_analog_reference_adc1(INTERNAL2V5);  // set ADC1 reference to 2.5V
 
   pinMode(EN5V_PIN, OUTPUT);
   pinMode(LED1_PIN, OUTPUT);
@@ -100,6 +103,16 @@ void setup() {
   Wire.onRequest(request_I2C_event);
   Wire.onReceive(receive_I2C_event);
 
+  // set the analog input pins to input
+  pinMode(V_CAP_ADC_PIN, INPUT);
+  pinMode(V_IN_ADC_PIN, INPUT);
+  pinMode(I_IN_ADC_PIN, INPUT);
+  
+  // set up digital input GPIO pins to be pulled up
+  pinMode(POWER_TOGGLE_PIN, INPUT_PULLUP);
+  pinMode(EXT_INT_PIN, INPUT_PULLUP);
+  pinMode(RTC_INT_PIN, INPUT_PULLUP);
+
   // setup serial port
   Serial.begin(38400);
   delay(100);
@@ -107,7 +120,6 @@ void setup() {
 }
 
 void loop() {
-  static elapsedMillis serial_output_elapsed = 0;
   static elapsedMillis v_reading_elapsed = 0;
 
   // no need to read the values at every iteration;
@@ -115,19 +127,11 @@ void loop() {
   // other loops
   if (v_reading_elapsed > 23) {
     v_reading_elapsed = 0;
-    // read twice to ensure the ADC output is stable
-    analogRead(V_CAP_ADC_PIN);
-    v_supercap = analogRead(V_CAP_ADC_PIN);
-    analogRead(V_IN_ADC_PIN);
-    v_in = analogRead(V_IN_ADC_PIN);
-    analogRead(I_IN_ADC_PIN);
-    i_in = analogRead(I_IN_ADC_PIN);
-    if (i_in < 0) {
-      i_in = 0;
-    }
+    v_supercap = att1s_analog_read(V_CAP_ADC_AIN, V_CAP_ADC_NUM);
+    v_in = att1s_analog_read(V_IN_ADC_AIN, V_IN_ADC_NUM);
+    i_in = att1s_analog_read(I_IN_ADC_AIN, I_IN_ADC_NUM);
 
-    analogRead(ADC_TEMPERATURE);
-    int adc_reading = analogRead(ADC_TEMPERATURE);
+    unsigned int adc_reading = att1s_analog_read(ADC_TEMPSENSE, 0);
     // temperature compensation code from the datasheet page 435
     uint32_t temp_temp = adc_reading - sigrow_offset;
     temp_temp *= sigrow_gain;
@@ -153,6 +157,8 @@ void loop() {
 
   }
 
+#if 0
+  static elapsedMillis serial_output_elapsed = 0;
   if (serial_output_elapsed > 1000) {
     serial_output_elapsed = 0;
 
@@ -174,7 +180,7 @@ void loop() {
     Serial.println(temperature_K);
     Serial.println();
   }
-
+#endif
 
   if (watchdog_reset) {
    if (new_watchdog_limit != -1) {

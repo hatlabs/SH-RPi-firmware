@@ -19,9 +19,20 @@
 
 // analog input pins
 
-#define V_IN_ADC_PIN PIN_PA6
 #define V_CAP_ADC_PIN PIN_PA7
+#define V_IN_ADC_PIN PIN_PA6
 #define I_IN_ADC_PIN PIN_PC3
+
+// corresponding ADCs and analog input numbers (AIN)
+
+#define V_CAP_ADC_NUM 0
+#define V_CAP_ADC_AIN AIN7
+
+#define V_IN_ADC_NUM 0
+#define V_IN_ADC_AIN AIN6
+
+#define I_IN_ADC_NUM 1
+#define I_IN_ADC_AIN AIN9
 
 // digital input pins
 
