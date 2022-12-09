@@ -3,9 +3,8 @@
 
 #include <Arduino.h>
 
-#include "constants.h"
 #include "blinker.h"
-
+#include "constants.h"
 
 //////
 // Globals

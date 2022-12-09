@@ -1,7 +1,6 @@
 #ifndef SH_RPI_FIRMWARE_SRC_CONSTANTS_H_
 #define SH_RPI_FIRMWARE_SRC_CONSTANTS_H_
 
-
 // HW version provided by the Legacy version I2C register
 #define LEGACY_FW_VERSION 0xff
 
@@ -89,6 +88,5 @@
 
 // how long to keep EN5V low in the event of watchdog reboot
 #define WATCHDOG_REBOOT_DURATION 2000
-
 
 #endif  // SH_RPI_FIRMWARE_SRC_CONSTANTS_H_

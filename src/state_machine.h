@@ -45,7 +45,7 @@ void sm_state_ENT_SLEEP_SHUTDOWN();
 void sm_state_SLEEP_SHUTDOWN();
 void sm_state_ENT_SLEEP();
 void sm_state_SLEEP();
-  
+
 void sm_run();
 
 StateType get_sm_state();

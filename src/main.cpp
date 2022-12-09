@@ -158,10 +158,10 @@ void loop() {
   if (serial_output_elapsed > 1000) {
     serial_output_elapsed = 0;
 
-    //Serial.print("0123456789");
+    // Serial.print("0123456789");
     Serial.print("V_sup: ");
     Serial.print(v_supercap);
-    
+
     Serial.print(", V_in: ");
     Serial.print(v_in);
     Serial.print(", I_in: ");
