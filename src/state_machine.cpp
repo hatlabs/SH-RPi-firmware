@@ -114,6 +114,12 @@ void sm_state_ON() {
     return;
   }
 
+  if (shutdown_requested) {
+    shutdown_requested = false;
+    sm_state = ENT_SHUTDOWN;
+    return;
+  }
+
   if (sleep_requested) {
     sm_state = ENT_SLEEP_SHUTDOWN;
     return;
