@@ -1,5 +1,7 @@
 #include "state_machine.h"
 
+#include <Wire.h>
+
 #include "digital_io.h"
 #include "globals.h"
 
@@ -35,8 +37,7 @@ StateType sm_state = BEGIN;
 
 StateType get_sm_state() { return sm_state; }
 
-// PATTERN: *___________________
-
+// briefly blink all leds
 LedPatternSegment power_off_pattern[] = {
     {{255, 255, 255, 255}, 0b0000, 50},
     {{0, 0, 0, 0}, 0b1111, 3900},
@@ -45,6 +46,7 @@ LedPatternSegment power_off_pattern[] = {
 
 void sm_state_BEGIN() {
   set_en5v_pin(false);
+  Wire.begin(I2C_ADDRESS);
 
   i2c_register = 0xff;
   watchdog_limit = 0;
@@ -86,6 +88,7 @@ void sm_state_CHARGING() {
 void sm_state_ENT_ON() {
   set_en5v_pin(true);
   led_blinker.set_pattern(no_pattern);
+  gpio_poweroff_elapsed = 0;
   sm_state = ON;
 }
 
@@ -98,8 +101,10 @@ LedPatternSegment watchdog_pattern[] = {
 void sm_state_ON() {
   if (watchdog_value_changed) {
     if (watchdog_limit) {
+      Serial.println("Watchdog enabled");
       led_blinker.set_pattern(watchdog_pattern);
     } else {
+      Serial.println("Watchdog disabled");
       led_blinker.set_pattern(no_pattern);
     }
     watchdog_value_changed = false;
@@ -122,9 +127,11 @@ void sm_state_ON() {
 
   if (v_in < int(VIN_OFF / VIN_MAX * VIN_SCALE)) {
     sm_state = ENT_DEPLETING;
+    return;
   }
 }
 
+// KITT light effect to the left
 LedPatternSegment depleting_pattern[] = {
     {{0, 0, 0, 255}, 0b0001, 50}, {{0, 0, 255, 0}, 0b0011, 50},
     {{0, 255, 0, 0}, 0b0110, 50}, {{255, 0, 0, 0}, 0b1100, 50},
@@ -164,6 +171,7 @@ void sm_state_DEPLETING() {
 
 elapsedMillis elapsed_shutdown;
 
+// two longish blips, then a long pause
 LedPatternSegment shutdown_pattern[] = {
     {{0, 0, 0, 0}, 0b1111, 200}, {{0, 0, 0, 0}, 0b0000, 100},
     {{0, 0, 0, 0}, 0b1111, 200}, {{0, 0, 0, 0}, 0b0000, 1000},
@@ -187,6 +195,7 @@ void sm_state_SHUTDOWN() {
 
 elapsedMillis elapsed_reboot;
 
+// alternating blink pattern indicating something is wrong
 LedPatternSegment watchdog_reboot_pattern[] = {
     {{255, 0, 255, 0}, 0b1111, 200},
     {{0, 255, 0, 255}, 0b1111, 200},
@@ -196,6 +205,7 @@ LedPatternSegment watchdog_reboot_pattern[] = {
 void sm_state_ENT_WATCHDOG_REBOOT() {
   elapsed_reboot = 0;
   watchdog_limit = 0;
+  Wire.end();  // need to do this before we turn off the power
   set_en5v_pin(false);
   led_blinker.set_pattern(watchdog_reboot_pattern);
   sm_state = WATCHDOG_REBOOT;
@@ -210,7 +220,11 @@ void sm_state_WATCHDOG_REBOOT() {
 elapsedMillis elapsed_off;
 
 void sm_state_ENT_OFF() {
+  Wire.end();  // need to do this before we turn off the power
+  // delay(10);  // DEBUG
   set_en5v_pin(false);
+  // delay(10);
+  elapsed_off = 0;
   // in case we're not dead, set a blink pattern
   led_blinker.set_pattern(power_off_pattern);
   sm_state = OFF;
@@ -238,6 +252,7 @@ void sm_state_SLEEP_SHUTDOWN() {
   }
 }
 
+// two short blinks, then a long pause
 LedPatternSegment sleep_pattern[] = {
     {{255, 255, 255, 255}, 0b1111, 100}, {{0, 0, 0, 0}, 0b0000, 200},
     {{255, 255, 255, 255}, 0b1111, 100}, {{0, 0, 0, 0}, 0b0000, 2000},
@@ -245,6 +260,7 @@ LedPatternSegment sleep_pattern[] = {
 };
 
 void sm_state_ENT_SLEEP() {
+  Wire.end();  // need to do this before we turn off the power
   set_en5v_pin(false);
   // we're not dead, set a blink pattern
   led_blinker.set_pattern(sleep_pattern);
@@ -260,7 +276,7 @@ void sm_state_SLEEP() {
 // function to run the state machine
 
 void sm_run() {
-  static uint32_t last_state = BEGIN;
+  static StateType last_state = BEGIN;
   if (last_state != sm_state) {
     Serial.print("New state: ");
     Serial.println(state_names[sm_state]);

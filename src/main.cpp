@@ -6,8 +6,8 @@
 #include "blinker.h"
 #include "digital_io.h"
 #include "globals.h"
-#include "state_machine.h"
 #include "shrpi_i2c.h"
+#include "state_machine.h"
 
 // ATTiny software for monitoring and controlling the Sailor Hat board.
 
@@ -59,7 +59,8 @@ bool watchdog_value_changed = false;
 elapsedMillis gpio_poweroff_elapsed;
 
 int led_pins[] = {LED1_PIN, LED2_PIN, LED3_PIN, LED4_PIN};
-constexpr uint16_t led_bar_knee_value = uint16_t(((uint16_t)-1) * (VCAP_POWER_ON/VCAP_MAX));
+constexpr uint16_t led_bar_knee_value =
+    uint16_t(((uint16_t)-1) * (VCAP_POWER_ON / VCAP_MAX));
 LedBlinker led_blinker(led_pins, off_pattern, led_bar_knee_value);
 
 bool shutdown_requested = false;
@@ -83,7 +84,6 @@ uint16_t temperature_K = 0;
 int8_t sigrow_offset = SIGROW.TEMPSENSE1;
 uint8_t sigrow_gain = SIGROW.TEMPSENSE0;
 
-
 void setup() {
   init_ADC1();
   att1s_analog_reference_adc0(INTERNAL1V1);  // set ADC0 reference to 1.1V
@@ -97,7 +97,7 @@ void setup() {
 
   // set up I2C
 
-  Wire.begin(I2C_ADDRESS);
+  // defer the actual BEGIN call until the first step of the state machine
   Wire.onRequest(request_I2C_event);
   Wire.onReceive(receive_I2C_event);
 
@@ -105,7 +105,7 @@ void setup() {
   pinMode(V_CAP_ADC_PIN, INPUT);
   pinMode(V_IN_ADC_PIN, INPUT);
   pinMode(I_IN_ADC_PIN, INPUT);
-  
+
   // set up digital input GPIO pins to be pulled up
   pinMode(POWER_TOGGLE_PIN, INPUT_PULLUP);
   pinMode(EXT_INT_PIN, INPUT_PULLUP);
@@ -144,7 +144,7 @@ void loop() {
 
     rtc_wakeup_triggered = !read_pin(RTC_INT_PIN);
     ext_wakeup_triggered = !read_pin(EXT_INT_PIN);
-    
+
     // if POWER_TOGGLE_PIN is pulled low, initiate shutdown
     if (read_pin(POWER_TOGGLE_PIN) == false) {
       shutdown_requested = true;
@@ -152,7 +152,6 @@ void loop() {
 
     // v_supercap is 10-bit while set_bar input is 16-bit - shift up by 6 bits
     led_blinker.set_bar(v_supercap << 6);
-
   }
 
   static elapsedMillis serial_output_elapsed = 0;
@@ -172,14 +171,14 @@ void loop() {
   }
 
   if (watchdog_reset) {
-   if (new_watchdog_limit != -1) {
-     watchdog_value_changed = true;
-     watchdog_limit = new_watchdog_limit;
-     new_watchdog_limit = -1;
-   }
+    if (new_watchdog_limit != -1) {
+      watchdog_value_changed = true;
+      watchdog_limit = new_watchdog_limit;
+      new_watchdog_limit = -1;
+    }
 
-   watchdog_elapsed = 0;
-   watchdog_reset = false;
+    watchdog_elapsed = 0;
+    watchdog_reset = false;
   }
 
   led_blinker.tick();
