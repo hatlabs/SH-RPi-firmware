@@ -8,6 +8,9 @@
 // HW version provided by the new I2C register
 #define FW_VERSION 0x02000001
 
+// I2C address of the MCU
+#define I2C_ADDRESS 0x6d
+
 //////
 // Hardware pin definitions
 

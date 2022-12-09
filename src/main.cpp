@@ -44,8 +44,6 @@
 
 // VCAP led: indicate supercap charge level
 
-#define I2C_ADDRESS 0x6d
-
 LedPatternSegment off_pattern[] = {
     {{0, 0, 0, 0}, 0b1111, 50},
     {{0, 0, 0, 0}, 0b0000, 0},
