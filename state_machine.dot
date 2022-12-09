@@ -1,4 +1,7 @@
 digraph G {
+graph [fontname = "IBM Plex Sans"];
+node [fontname = "IBM Plex Sans"];
+edge [fontname = "IBM Plex Sans"];
 BEGIN [label="Begin",shape=diamond];
 WAIT_VIN_ON [label="Wait for\nVin"];
 ENT_CHARGING [label="Enter\ncharging",shape=box];
@@ -32,6 +35,7 @@ ON -> ENT_WATCHDOG_REBOOT [label="WD not\nreset\nin 10s"];
 ON -> ENT_DEPLETING [label="Vin<9V"];
 ON -> ENT_OFF [label="poweroff>1s"];
 ON -> ENT_SLEEP_SHUTDOWN [label="sleep\nrequested"];
+ON -> ENT_SHUTDOWN [label="shutdown\nrequested"];
 ENT_DEPLETING -> DEPLETING [color="red",weight=8];
 DEPLETING -> DEPLETING;
 DEPLETING -> ENT_WATCHDOG_REBOOT [label="WD not\nreset\nin 10s"];
