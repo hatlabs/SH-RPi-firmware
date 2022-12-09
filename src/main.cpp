@@ -155,30 +155,21 @@ void loop() {
 
   }
 
-#if 0
   static elapsedMillis serial_output_elapsed = 0;
   if (serial_output_elapsed > 1000) {
     serial_output_elapsed = 0;
 
     //Serial.print("0123456789");
     Serial.print("V_sup: ");
-    Serial.println(v_supercap);
+    Serial.print(v_supercap);
     
-    Serial.print(" V_in: ");
-    Serial.println(v_in);
-    Serial.print("I_in: ");
-    Serial.println(i_in);
-    Serial.print("gpio_poweroff_elapsed: ");
-    Serial.println(gpio_poweroff_elapsed);
-    Serial.print("rtc_wakeup_triggered: ");
-    Serial.println(rtc_wakeup_triggered);
-    Serial.print("ext_wakeup_triggered: ");
-    Serial.println(ext_wakeup_triggered);
-    Serial.print("temperature: ");
+    Serial.print(", V_in: ");
+    Serial.print(v_in);
+    Serial.print(", I_in: ");
+    Serial.print(i_in);
+    Serial.print(", temp: ");
     Serial.println(temperature_K);
-    Serial.println();
   }
-#endif
 
   if (watchdog_reset) {
    if (new_watchdog_limit != -1) {
