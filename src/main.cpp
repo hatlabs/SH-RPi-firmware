@@ -80,6 +80,11 @@ unsigned int v_in = 0;
 unsigned int i_in = 0;
 uint16_t temperature_K = 0;
 
+char v_supercap_buf[2];
+char v_in_buf[2];
+char i_in_buf[2];
+char temperature_K_buf[2];
+
 // factory calibration of the internal temperature sensor
 int8_t sigrow_offset = SIGROW.TEMPSENSE1;
 uint8_t sigrow_gain = SIGROW.TEMPSENSE0;
@@ -135,6 +140,15 @@ void loop() {
     att1s_analog_read(V_CAP_ADC_AIN, V_CAP_ADC_NUM);
     i_in = att1s_analog_read(I_IN_ADC_AIN, I_IN_ADC_NUM);
 
+    v_supercap_buf[0] = v_supercap >> 2;
+    v_supercap_buf[1] = (v_supercap << 6) & 0xff;
+
+    v_in_buf[0] = v_in >> 2;
+    v_in_buf[1] = (v_in << 6) & 0xff;
+
+    i_in_buf[0] = i_in >> 2;
+    i_in_buf[1] = (i_in << 6) & 0xff;
+
     att1s_analog_read(ADC_TEMPSENSE, 0);
     unsigned int adc_reading = att1s_analog_read(ADC_TEMPSENSE, 0);
     // temperature compensation code from the datasheet page 435
@@ -143,6 +157,9 @@ void loop() {
     temp_temp += 0x80;
     temp_temp >>= 1;  // make temperature fit in uint16_t
     temperature_K = temp_temp;
+
+    temperature_K_buf[0] = temperature_K >> 8;
+    temperature_K_buf[1] = temperature_K & 0xff;
 
     // A low value of GPIO_POWEROFF_PIN indicates that the host has shut down
     if (read_pin(GPIO_POWEROFF_PIN) == true) {

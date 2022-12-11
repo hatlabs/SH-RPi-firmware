@@ -37,6 +37,11 @@ extern unsigned int v_in;
 extern unsigned int i_in;
 extern uint16_t temperature_K;
 
+extern char v_supercap_buf[2];
+extern char v_in_buf[2];
+extern char i_in_buf[2];
+extern char temperature_K_buf[2];
+
 extern bool shutdown_requested;
 extern bool sleep_requested;
 
