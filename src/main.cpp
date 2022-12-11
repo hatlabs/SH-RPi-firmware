@@ -125,16 +125,23 @@ void loop() {
   // other loops
   if (v_reading_elapsed > 23) {
     v_reading_elapsed = 0;
+
+    // read the analog inputs twice to let the ADC stabilize
+
+    att1s_analog_read(V_CAP_ADC_AIN, V_CAP_ADC_NUM);
     v_supercap = att1s_analog_read(V_CAP_ADC_AIN, V_CAP_ADC_NUM);
+    att1s_analog_read(V_CAP_ADC_AIN, V_CAP_ADC_NUM);
     v_in = att1s_analog_read(V_IN_ADC_AIN, V_IN_ADC_NUM);
+    att1s_analog_read(V_CAP_ADC_AIN, V_CAP_ADC_NUM);
     i_in = att1s_analog_read(I_IN_ADC_AIN, I_IN_ADC_NUM);
 
+    att1s_analog_read(ADC_TEMPSENSE, 0);
     unsigned int adc_reading = att1s_analog_read(ADC_TEMPSENSE, 0);
     // temperature compensation code from the datasheet page 435
     uint32_t temp_temp = adc_reading - sigrow_offset;
     temp_temp *= sigrow_gain;
     temp_temp += 0x80;
-    temp_temp >>= 1;
+    temp_temp >>= 1;  // make temperature fit in uint16_t
     temperature_K = temp_temp;
 
     // A low value of GPIO_POWEROFF_PIN indicates that the host has shut down
