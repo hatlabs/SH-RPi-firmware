@@ -68,6 +68,7 @@ void receive_I2C_event(int bytes) {
 }
 
 void request_I2C_event() {
+  char buf[4];
   switch (i2c_register) {
     case 0x01:
       // Query hardware version
@@ -102,13 +103,19 @@ void request_I2C_event() {
       break;
     case 0x13:
       // Query power-on threshold voltage
-      // FIXME: magic numbers
-      Wire.write(uint8_t(power_on_vcap_voltage / 4));
+      // power_on_vcap_voltage is stored as a 10-bit value, but
+      // it should be scaled and transmitted as a 16-bit word.
+      buf[0] = uint8_t(power_on_vcap_voltage >> 2);
+      buf[1] = uint8_t((power_on_vcap_voltage << 6) & 0xff);
+      Wire.write(buf, 2);
       break;
     case 0x14:
       // Query power-off threshold voltage
-      // FIXME: magic numbers
-      Wire.write(uint8_t(power_off_vcap_voltage / 4));
+      // power_off_vcap_voltage is stored as a 10-bit value, but
+      // it should be scaled and transmitted as a 16-bit word.
+      buf[0] = uint8_t(power_off_vcap_voltage >> 2);
+      buf[1] = uint8_t((power_off_vcap_voltage << 6) & 0xff);
+      Wire.write(buf, 2);
       break;
     case 0x15:
       // Query state machine state
@@ -121,22 +128,33 @@ void request_I2C_event() {
       break;
     case 0x20:
       // Query DC IN voltage
-      // FIXME: magic numbers
-      Wire.write(uint8_t(v_in / 4));
+      // v_in is stored as a 10-bit value, but it should be scaled
+      // and transmitted as a 16-bit word.
+      buf[0] = uint8_t(v_in >> 2);
+      buf[1] = uint8_t((v_in << 6) & 0xff);
+      Wire.write(buf, 2);
       break;
     case 0x21:
       // Query supercap voltage
-      // FIXME: magic numbers
-      Wire.write(uint8_t(v_supercap / 4));
+      // v_supercap is stored as a 10-bit value, but it should be scaled
+      // and transmitted as a 16-bit word.
+      buf[0] = uint8_t(v_supercap >> 2);
+      buf[1] = uint8_t((v_supercap << 6) & 0xff);
+      Wire.write(buf, 2);
       break;
     case 0x22:
       // Query DC IN current
-      Wire.write(uint8_t(i_in / 4));
+      // i_in is stored as a 10-bit value, but it should be scaled
+      // and transmitted as a 16-bit word.
+      buf[0] = uint8_t(i_in >> 2);
+      buf[1] = uint8_t((i_in << 6) & 0xff);
+      Wire.write(buf, 2);
       break;
     case 0x23:
       // Query MCU temperature
-      Wire.write(uint8_t(temperature_K >> 8));
-      Wire.write(uint8_t(temperature_K & 0xff));
+      buf[0] = uint8_t(temperature_K >> 8);
+      buf[1] = uint8_t(temperature_K & 0xff);
+      Wire.write(buf, 2);
       break;
     default:
       Wire.write(0xff);
