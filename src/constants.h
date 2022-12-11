@@ -1,11 +1,17 @@
 #ifndef SH_RPI_FIRMWARE_SRC_CONSTANTS_H_
 #define SH_RPI_FIRMWARE_SRC_CONSTANTS_H_
 
-// HW version provided by the Legacy version I2C register
+// FW version provided by the Legacy version I2C register
 #define LEGACY_FW_VERSION 0xff
 
-// HW version provided by the new I2C register
+// FW version provided by the new I2C register
 #define FW_VERSION 0x02000001
+
+// HW version provided by the Legacy version I2C register
+#define LEGACY_HW_VERSION 0x00
+
+// HW version provided by the new I2C register
+#define HW_VERSION 0x02000001
 
 // I2C address of the MCU
 #define I2C_ADDRESS 0x6d
