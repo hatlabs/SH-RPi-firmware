@@ -6,7 +6,7 @@
 is a Raspberry Pi power management and CAN bus
 controller board for marine and automotive use. 
 
-The Sailor Hat circuit board includes an ATTiny1614 microcontroller (MCU) that,
+The Sailor Hat circuit board includes an ATTiny1616 microcontroller (MCU) that,
 well, controls the hat functionality. This repository contains the MCU
 firmware implementing the Hat control functionality, including the I2C
 communications protocol.
