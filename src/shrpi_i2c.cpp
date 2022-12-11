@@ -72,14 +72,21 @@ void request_I2C_event() {
   switch (i2c_register) {
     case 0x01:
       // Query hardware version
-      // NB: Feature removed!
-      Wire.write(0);
+      Wire.write(0xff);
       break;
     case 0x02:
       // Query legacy firmware version
       Wire.write(LEGACY_FW_VERSION);
       break;
     case 0x03:
+      // Query hardware version
+      buf[0] = (HW_VERSION >> 24) & 0xff;
+      buf[1] = (HW_VERSION >> 16) & 0xff;
+      buf[2] = (HW_VERSION >> 8) & 0xff;
+      buf[3] = (HW_VERSION)&0xff;
+      Wire.write(buf, 4);
+      break;
+    case 0x04:
       // Query firmware version
       Wire.write((FW_VERSION >> 24) & 0xff);
       Wire.write((FW_VERSION >> 16) & 0xff);
