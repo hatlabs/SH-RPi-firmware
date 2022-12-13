@@ -78,7 +78,6 @@ void setup() {
   // set up I2C
 
   // defer the actual BEGIN call until the first step of the state machine
-  Wire.onRequest(request_I2C_event);
   Wire.onReceive(receive_I2C_event);
 
   // set the analog input pins to input
