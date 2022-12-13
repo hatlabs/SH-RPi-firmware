@@ -126,10 +126,10 @@ void sm_state_ON() {
   }
 
   // kill the power if the host has been powered off for more than a second
-  if (gpio_poweroff_elapsed > GPIO_OFF_TIME_LIMIT) {
-    sm_state = ENT_OFF;
-    return;
-  }
+  //if (gpio_poweroff_elapsed > GPIO_OFF_TIME_LIMIT) {
+  //  sm_state = ENT_OFF;
+  //  return;
+  //}
 
   if (v_in < int(VIN_OFF / VIN_MAX * VIN_SCALE)) {
     sm_state = ENT_DEPLETING;
