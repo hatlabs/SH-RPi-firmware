@@ -5,6 +5,32 @@
 #include "globals.h"
 #include "state_machine.h"
 
+// Spec:
+
+// Act as I2C slave at address 0x6d (or whatever).
+// Recognize following commands:
+// - Read 0x01: Query hardware version
+// - Read 0x02: Query legacy firmware version
+// - Read 0x03: Query hardware version
+// - Read 0x04: Query firmware version
+// - Read 0x10: Query Raspi power state
+// - Write 0x10 0x00: Set Raspi power off
+// - Write 0x10 0x01: Set Raspi power on (who'd ever send that?)
+// - Read 0x12: Query watchdog timeout
+// - Write 0x12 [NN]: Set watchdog timeout to 0.1*NN seconds
+// - Write 0x12 0x00: Disable watchdog
+// - Read 0x13: Query power-on threshold voltage
+// - Write 0x13 [NN]: Set power-on threshold voltage to 0.01*NN V
+// - Read 0x14: Query power-off threshold voltage
+// - Write 0x14 [NN]: Set power-off threshold voltage to 0.01*NN V
+// - Read 0x15: Query state machine state
+// - Read 0x16: Query watchdog elapsed
+// - Read 0x20: Query DC IN voltage
+// - Read 0x21: Query supercap voltage
+// - Read 0x22: Query DC IN current
+// - Read 0x23: Query MCU temperature
+// - Write 0x30: [ANY]: Initiate shutdown
+// - Write 0x31: [ANY]: Initiate sleep shutdown
 void receive_I2C_event(int bytes) {
   // watchdog is considered zeroed after any input
   watchdog_reset = true;
