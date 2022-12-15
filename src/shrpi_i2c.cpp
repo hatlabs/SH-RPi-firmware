@@ -149,7 +149,7 @@ void receive_I2C_event(int bytes) {
   if (bytes == 1) {
     // We can assume this is a register read request
     i2c_register = Wire.read();
-    char register_group = (i2c_register >> 4) & 0x04;
+    char register_group = (i2c_register >> 4);
     char register_index = i2c_register & 0x0f;
     switch (register_group) {
       case 0x00:
@@ -162,7 +162,7 @@ void receive_I2C_event(int bytes) {
           return;
         }
         break;
-      case 0x10:
+      case 0x1:
         if (register_index > 6) {
           Wire.onRequest(request_I2C_event_unknown);
           return;
@@ -171,7 +171,7 @@ void receive_I2C_event(int bytes) {
           return;
         }
         break;
-      case 0x20:
+      case 0x2:
         if (register_index > 3) {
           Wire.onRequest(request_I2C_event_unknown);
           return;
