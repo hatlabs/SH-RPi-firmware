@@ -187,6 +187,9 @@ void receive_I2C_event(int bytes) {
     }
   }
 
+  // Read the register address
+  i2c_register = Wire.read();
+
   // If there are more than 1 byte, then the master is writing to the slave.
   // We can go through a long switch statement because the transmission
   // has been already received in the RX buffer.
@@ -226,8 +229,11 @@ void receive_I2C_event(int bytes) {
       sleep_requested = true;
       break;
     default:
-      // Ignore other registers
-      Wire.read();
       break;
+      // Ignore other registers
+  }
+  // discard any other available bytes
+  while (Wire.available()) {
+    Wire.read();
   }
 }
