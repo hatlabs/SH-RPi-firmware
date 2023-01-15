@@ -77,6 +77,9 @@ void setup() {
 
   // set up I2C
 
+  // Use alternate pins for I2C
+  Wire.swap(1);
+
   // defer the actual BEGIN call until the first step of the state machine
   Wire.onReceive(receive_I2C_event);
 
