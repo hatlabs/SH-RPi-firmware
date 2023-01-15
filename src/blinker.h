@@ -8,6 +8,11 @@
 
 #define BLINKER_PERIOD_SCALE 32768
 
+
+#ifndef MILLIS_USE_TIMERD0
+  #error "This sketch is written for use with TCD0 as the millis timing source"
+#endif
+
 /**
  * @brief Define an individual LED pattern segment.
  *
@@ -51,6 +56,7 @@ class LedBlinker {
       pin_[i] = pins[i];
       port_[i] = digitalPinToPortStruct(pins[i]);
       pin_mask_[i] = digitalPinToBitMask(pins[i]);
+      pinMode(pins[i], OUTPUT);
     }
   }
 
@@ -143,6 +149,7 @@ class LedBlinker {
       }
       // For now, just set the output value to the LED value. PWM support
       // will be added later.
+      analogWrite(pin_[i], led_value_[i]);
       update_pin(pin_[i], led_value_[i] > 127);
     }
   }
