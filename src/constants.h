@@ -5,13 +5,13 @@
 #define LEGACY_FW_VERSION 0xff
 
 // FW version provided by the new I2C register
-constexpr char kFWVersion[] = {2, 0, 0, 1};
+constexpr char kFWVersion[] = {2, 0, 0, 2};
 
 // HW version provided by the Legacy version I2C register
 #define LEGACY_HW_VERSION 0x00
 
 // HW version provided by the new I2C register
-constexpr char kHWVersion[] = {2, 0, 0, 1};
+constexpr char kHWVersion[] = {2, 0, 0, 2};
 
 // I2C address of the MCU
 #define I2C_ADDRESS 0x6d
