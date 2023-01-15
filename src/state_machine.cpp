@@ -47,7 +47,6 @@ LedPatternSegment power_off_pattern[] = {
 void sm_state_BEGIN() {
   set_en5v_pin(false);
   Wire.begin(I2C_ADDRESS);
-
   i2c_register = 0xff;
   watchdog_limit = 0;
   gpio_poweroff_elapsed = 0;
@@ -121,6 +120,7 @@ void sm_state_ON() {
   }
 
   if (sleep_requested) {
+    sleep_requested = false;
     sm_state = ENT_SLEEP_SHUTDOWN;
     return;
   }
@@ -275,6 +275,8 @@ void sm_state_ENT_SLEEP() {
 
 void sm_state_SLEEP() {
   if (rtc_wakeup_triggered || ext_wakeup_triggered) {
+    rtc_wakeup_triggered = false;
+    ext_wakeup_triggered = false;
     sm_state = BEGIN;
   }
 }
