@@ -70,11 +70,7 @@ void setup() {
   att1s_analog_reference_adc1(INTERNAL2V5);  // set ADC1 reference to 2.5V
 
   pinMode(EN5V_PIN, OUTPUT);
-  pinMode(LED1_PIN, OUTPUT);
-  pinMode(LED2_PIN, OUTPUT);
-  pinMode(LED3_PIN, OUTPUT);
-  pinMode(LED4_PIN, OUTPUT);
-
+  
   // set up I2C
 
   // Use alternate pins for I2C
