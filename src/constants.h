@@ -52,15 +52,15 @@ constexpr char kHWVersion[] = {2, 0, 0, 1};
 
 #define NUM_LEDS 4
 
-#define LED1_PIN PIN_PA2
-#define LED2_PIN PIN_PA3
-#define LED3_PIN PIN_PA4
-#define LED4_PIN PIN_PA5
+#define LED1_PIN PIN_PB0
+#define LED2_PIN PIN_PB1
+#define LED3_PIN PIN_PA3
+#define LED4_PIN PIN_PA4
 
 #define EN5V_PIN PIN_PB4
 
 // same as SDA
-#define GPIO_POWEROFF_PIN PIN_PB1
+#define GPIO_POWEROFF_PIN PIN_PA1
 
 //////
 // Other behavioral definitions
