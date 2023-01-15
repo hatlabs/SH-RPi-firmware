@@ -27,7 +27,7 @@ extern LedBlinker led_blinker;
 extern bool rtc_wakeup_triggered;
 extern bool ext_wakeup_triggered;
 
-extern uint8_t i2c_register;
+extern volatile uint8_t i2c_register;
 
 extern unsigned int power_on_vcap_voltage;
 extern unsigned int power_off_vcap_voltage;
@@ -42,7 +42,7 @@ extern char v_in_buf[2];
 extern char i_in_buf[2];
 extern char temperature_K_buf[2];
 
-extern bool shutdown_requested;
-extern bool sleep_requested;
+extern volatile bool shutdown_requested;
+extern volatile bool sleep_requested;
 
 #endif

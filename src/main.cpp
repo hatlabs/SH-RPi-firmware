@@ -38,13 +38,13 @@ constexpr uint16_t led_bar_knee_value =
     uint16_t(((uint16_t)-1) * (VCAP_POWER_ON / VCAP_MAX));
 LedBlinker led_blinker(led_pins, off_pattern, led_bar_knee_value);
 
-bool shutdown_requested = false;
-bool sleep_requested = false;
+volatile bool shutdown_requested = false;
+volatile bool sleep_requested = false;
 
 bool rtc_wakeup_triggered = false;
 bool ext_wakeup_triggered = false;
 
-uint8_t i2c_register;
+volatile uint8_t i2c_register = 0;
 
 unsigned int power_on_vcap_voltage = int(VCAP_POWER_ON / VCAP_MAX * VCAP_SCALE);
 unsigned int power_off_vcap_voltage =
