@@ -124,22 +124,43 @@ void request_I2C_event_unknown() {
   Wire.write(0);
 }
 
-void (*request_I2C_event_array_0x0[])() = {
-    request_I2C_event_unknown, request_I2C_event_0x01, request_I2C_event_0x02,
-    request_I2C_event_0x03,    request_I2C_event_0x04,
-};
-
-void (*request_I2C_event_array_0x1[])() = {
-    request_I2C_event_0x10, request_I2C_event_unknown, request_I2C_event_0x12,
-    request_I2C_event_0x13, request_I2C_event_0x14,    request_I2C_event_0x15,
-    request_I2C_event_0x16,
-};
-
-void (*request_I2C_event_array_0x2[])() = {
-    request_I2C_event_0x20,
-    request_I2C_event_0x21,
-    request_I2C_event_0x22,
-    request_I2C_event_0x23,
+void (*request_I2C_event_array[])() = {
+  request_I2C_event_unknown,  // 0x00
+  request_I2C_event_0x01,     // 0x01
+  request_I2C_event_0x02,     // 0x02
+  request_I2C_event_0x03,     // 0x03
+  request_I2C_event_0x04,     // 0x04
+  request_I2C_event_unknown,  // 0x05
+  request_I2C_event_unknown,  // 0x06
+  request_I2C_event_unknown,  // 0x07
+  request_I2C_event_unknown,  // 0x08
+  request_I2C_event_unknown,  // 0x09
+  request_I2C_event_unknown,  // 0x0a
+  request_I2C_event_unknown,  // 0x0b
+  request_I2C_event_unknown,  // 0x0c
+  request_I2C_event_unknown,  // 0x0d
+  request_I2C_event_unknown,  // 0x0e
+  request_I2C_event_unknown,  // 0x0f
+  request_I2C_event_0x10,     // 0x10
+  request_I2C_event_unknown,  // 0x11
+  request_I2C_event_0x12,     // 0x12
+  request_I2C_event_0x13,     // 0x13
+  request_I2C_event_0x14,     // 0x14
+  request_I2C_event_0x15,     // 0x15
+  request_I2C_event_0x16,     // 0x16
+  request_I2C_event_unknown,  // 0x17
+  request_I2C_event_unknown,  // 0x18
+  request_I2C_event_unknown,  // 0x19
+  request_I2C_event_unknown,  // 0x1a
+  request_I2C_event_unknown,  // 0x1b
+  request_I2C_event_unknown,  // 0x1c
+  request_I2C_event_unknown,  // 0x1d
+  request_I2C_event_unknown,  // 0x1e
+  request_I2C_event_unknown,  // 0x1f
+  request_I2C_event_0x20,     // 0x20
+  request_I2C_event_0x21,     // 0x21
+  request_I2C_event_0x22,     // 0x22
+  request_I2C_event_0x23,     // 0x23
 };
 
 void receive_I2C_event(int bytes) {
@@ -149,41 +170,11 @@ void receive_I2C_event(int bytes) {
   if (bytes == 1) {
     // We can assume this is a register read request
     i2c_register = Wire.read();
-    char register_group = (i2c_register >> 4);
-    char register_index = i2c_register & 0x0f;
-    switch (register_group) {
-      case 0x00:
-        // check that register_index is within array bounds
-        if (register_index > 4) {
-          Wire.onRequest(request_I2C_event_unknown);
-          return;
-        } else {
-          Wire.onRequest(request_I2C_event_array_0x0[register_index]);
-          return;
-        }
-        break;
-      case 0x1:
-        if (register_index > 6) {
-          Wire.onRequest(request_I2C_event_unknown);
-          return;
-        } else {
-          Wire.onRequest(request_I2C_event_array_0x1[register_index]);
-          return;
-        }
-        break;
-      case 0x2:
-        if (register_index > 3) {
-          Wire.onRequest(request_I2C_event_unknown);
-          return;
-        } else {
-          Wire.onRequest(request_I2C_event_array_0x2[register_index]);
-          return;
-        }
-        break;
-      default:
-        Wire.onRequest(request_I2C_event_unknown);
-        return;
-        break;
+
+    if (i2c_register < sizeof(request_I2C_event_array) / sizeof(request_I2C_event_array[0])) {
+      Wire.onRequest(request_I2C_event_array[i2c_register]);
+    } else {
+      Wire.onRequest(request_I2C_event_unknown);
     }
   }
 
