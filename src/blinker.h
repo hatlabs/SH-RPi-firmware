@@ -147,10 +147,7 @@ class LedBlinker {
       } else {
         led_value_[i] = bar_value_[i];
       }
-      // For now, just set the output value to the LED value. PWM support
-      // will be added later.
       analogWrite(pin_[i], led_value_[i]);
-      update_pin(pin_[i], led_value_[i] > 127);
     }
   }
 };
