@@ -37,9 +37,8 @@ StateType sm_state = BEGIN;
 
 StateType get_sm_state() { return sm_state; }
 
-// briefly blink all leds
+// All LEDs are off
 LedPatternSegment power_off_pattern[] = {
-    {{255, 255, 255, 255}, 0b0000, 50},
     {{0, 0, 0, 0}, 0b1111, 3900},
     {{0, 0, 0, 0}, 0b0000, 0},
 };
