@@ -166,7 +166,10 @@ void loop() {
     Serial.print(", temp: ");
     Serial.print(temperature_K);
     Serial.print(", i2c reg: ");
-    Serial.println(i2c_register);
+    Serial.print(i2c_register);
+    Serial.print(", RTC alarm: ");
+    Serial.print(rtc_wakeup_triggered);
+    Serial.println("");
   }
 
   if (watchdog_reset) {
