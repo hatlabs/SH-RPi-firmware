@@ -176,8 +176,10 @@ void receive_I2C_event(int bytes) {
     } else {
       Wire.onRequest(request_I2C_event_unknown);
     }
+    return;
   }
 
+  // bytes > 1
   // Read the register address
   i2c_register = Wire.read();
 
