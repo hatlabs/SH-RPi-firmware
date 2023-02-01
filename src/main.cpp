@@ -152,7 +152,7 @@ void loop() {
   }
 
   static elapsedMillis serial_output_elapsed = 0;
-  if (serial_output_elapsed > 1000) {
+  if (serial_output_elapsed > 100) {
     serial_output_elapsed = 0;
 
     // Serial.print("0123456789");
@@ -164,7 +164,9 @@ void loop() {
     Serial.print(", I_in: ");
     Serial.print(i_in);
     Serial.print(", temp: ");
-    Serial.println(temperature_K);
+    Serial.print(temperature_K);
+    Serial.print(", i2c reg: ");
+    Serial.println(i2c_register);
   }
 
   if (watchdog_reset) {
