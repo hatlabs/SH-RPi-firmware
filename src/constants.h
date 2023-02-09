@@ -95,4 +95,8 @@ constexpr char kHWVersion[] = {2, 0, 0, 2};
 // how long to keep EN5V low in the event of watchdog reboot
 #define WATCHDOG_REBOOT_DURATION 2000
 
+// EEPROM addresses
+#define EEPROM_POWER_ON_VCAP_ADDR 0
+#define EEPROM_POWER_OFF_VCAP_ADDR 2
+
 #endif  // SH_RPI_FIRMWARE_SRC_CONSTANTS_H_

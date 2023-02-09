@@ -205,11 +205,11 @@ void receive_I2C_event(int bytes) {
       break;
     case 0x13:
       // Set power-on threshold voltage
-      power_on_vcap_voltage = (Wire.read() << 2) | (Wire.read() >> 6);
+      new_power_on_vcap_voltage = (Wire.read() << 2) | (Wire.read() >> 6);
       break;
     case 0x14:
       // Set power-off threshold voltage
-      power_off_vcap_voltage = (Wire.read() << 2) | (Wire.read() >> 6);
+      new_power_off_vcap_voltage = (Wire.read() << 2) | (Wire.read() >> 6);
       break;
     case 0x30:
       // Set shutdown initiated

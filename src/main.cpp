@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include <EEPROM.h>
 #include <Wire.h>
 #include <avr/io.h>
 
@@ -46,13 +47,15 @@ bool ext_wakeup_triggered = false;
 
 volatile uint8_t i2c_register = 0;
 
-unsigned int power_on_vcap_voltage = int(VCAP_POWER_ON / VCAP_MAX * VCAP_SCALE);
-unsigned int power_off_vcap_voltage =
-    int(VCAP_POWER_OFF / VCAP_MAX * VCAP_SCALE);
+int16_t power_on_vcap_voltage = int(VCAP_POWER_ON / VCAP_MAX * VCAP_SCALE);
+int16_t power_off_vcap_voltage = int(VCAP_POWER_OFF / VCAP_MAX * VCAP_SCALE);
 
-unsigned int v_supercap = 0;
-unsigned int v_in = 0;
-unsigned int i_in = 0;
+int16_t new_power_on_vcap_voltage = -1;
+int16_t new_power_off_vcap_voltage = -1;
+
+uint16_t v_supercap = 0;
+uint16_t v_in = 0;
+uint16_t i_in = 0;
 uint16_t temperature_K = 0;
 
 char v_supercap_buf[2];
@@ -70,7 +73,7 @@ void setup() {
   att1s_analog_reference_adc1(INTERNAL2V5);  // set ADC1 reference to 2.5V
 
   pinMode(EN5V_PIN, OUTPUT);
-  
+
   // set up I2C
 
   // Use alternate pins for I2C
@@ -88,6 +91,18 @@ void setup() {
   pinMode(POWER_TOGGLE_PIN, INPUT_PULLUP);
   pinMode(EXT_INT_PIN, INPUT_PULLUP);
   pinMode(RTC_INT_PIN, INPUT_PULLUP);
+
+  // read the power on voltage from EEPROM
+  EEPROM.get(EEPROM_POWER_ON_VCAP_ADDR, power_on_vcap_voltage);
+  if (power_on_vcap_voltage < 0 || power_on_vcap_voltage > VCAP_SCALE) {
+    power_on_vcap_voltage = int(VCAP_POWER_ON / VCAP_MAX * VCAP_SCALE);
+  }
+
+  // read the power off voltage from EEPROM
+  EEPROM.get(EEPROM_POWER_OFF_VCAP_ADDR, power_off_vcap_voltage);
+  if (power_off_vcap_voltage < 0 || power_off_vcap_voltage > VCAP_SCALE) {
+    power_off_vcap_voltage = int(VCAP_POWER_OFF / VCAP_MAX * VCAP_SCALE);
+  }
 
   // setup serial port
   Serial.begin(38400);
@@ -181,6 +196,20 @@ void loop() {
 
     watchdog_elapsed = 0;
     watchdog_reset = false;
+  }
+
+  if (new_power_on_vcap_voltage != -1) {
+    power_on_vcap_voltage = new_power_on_vcap_voltage;
+    new_power_on_vcap_voltage = -1;
+    // write the set value to EEPROM
+    EEPROM.put(EEPROM_POWER_ON_VCAP_ADDR, power_on_vcap_voltage);
+  }
+
+  if (new_power_off_vcap_voltage != -1) {
+    power_off_vcap_voltage = new_power_off_vcap_voltage;
+    new_power_off_vcap_voltage = -1;
+    // write the set value to EEPROM
+    EEPROM.put(EEPROM_POWER_OFF_VCAP_ADDR, power_off_vcap_voltage);
   }
 
   led_blinker.tick();

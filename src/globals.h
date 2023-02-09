@@ -29,12 +29,15 @@ extern bool ext_wakeup_triggered;
 
 extern volatile uint8_t i2c_register;
 
-extern unsigned int power_on_vcap_voltage;
-extern unsigned int power_off_vcap_voltage;
+extern int16_t power_on_vcap_voltage;
+extern int16_t power_off_vcap_voltage;
 
-extern unsigned int v_supercap;
-extern unsigned int v_in;
-extern unsigned int i_in;
+extern int16_t new_power_on_vcap_voltage;
+extern int16_t new_power_off_vcap_voltage;
+
+extern uint16_t v_supercap;
+extern uint16_t v_in;
+extern uint16_t i_in;
 extern uint16_t temperature_K;
 
 extern char v_supercap_buf[2];
