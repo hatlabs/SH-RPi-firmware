@@ -22,8 +22,6 @@ extern volatile bool watchdog_reset;
 // milliseconds elapsed since gpio-poweroff pin was last high
 extern elapsedMillis gpio_poweroff_elapsed;
 
-extern LedBlinker led_blinker;
-
 extern bool rtc_wakeup_triggered;
 extern bool ext_wakeup_triggered;
 
@@ -34,6 +32,9 @@ extern int16_t power_off_vcap_voltage;
 
 extern int16_t new_power_on_vcap_voltage;
 extern int16_t new_power_off_vcap_voltage;
+
+extern uint8_t led_global_brightness;
+extern uint8_t new_led_global_brightness;
 
 extern uint16_t v_supercap;
 extern uint16_t v_in;
@@ -47,5 +48,7 @@ extern char temperature_K_buf[2];
 
 extern volatile bool shutdown_requested;
 extern volatile bool sleep_requested;
+
+extern LedBlinker led_blinker;
 
 #endif

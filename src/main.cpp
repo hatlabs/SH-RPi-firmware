@@ -58,6 +58,9 @@ uint16_t v_in = 0;
 uint16_t i_in = 0;
 uint16_t temperature_K = 0;
 
+uint8_t led_global_brightness = 0;
+uint8_t new_led_global_brightness = 255;
+
 char v_supercap_buf[2];
 char v_in_buf[2];
 char i_in_buf[2];
@@ -103,6 +106,11 @@ void setup() {
   if (power_off_vcap_voltage < 0 || power_off_vcap_voltage > VCAP_SCALE) {
     power_off_vcap_voltage = int(VCAP_POWER_OFF / VCAP_MAX * VCAP_SCALE);
   }
+
+  // Read the LED brightness from EEPROM. The default unset value is 0xFF which
+  // just coincides with the default full brightness value.
+  EEPROM.get(EEPROM_LED_BRIGHTNESS_ADDR, led_global_brightness);
+  new_led_global_brightness = led_global_brightness;
 
   // setup serial port
   Serial.begin(38400);
@@ -210,6 +218,12 @@ void loop() {
     new_power_off_vcap_voltage = -1;
     // write the set value to EEPROM
     EEPROM.put(EEPROM_POWER_OFF_VCAP_ADDR, power_off_vcap_voltage);
+  }
+
+  if (new_led_global_brightness != led_global_brightness) {
+    led_global_brightness = new_led_global_brightness;
+    // write the set value to EEPROM
+    EEPROM.put(EEPROM_LED_BRIGHTNESS_ADDR, led_global_brightness);
   }
 
   led_blinker.tick();

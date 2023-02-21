@@ -25,6 +25,8 @@
 // - Write 0x14 [NN]: Set power-off threshold voltage to 0.01*NN V
 // - Read 0x15: Query state machine state
 // - Read 0x16: Query watchdog elapsed
+// - Read 0x17: Query LED brightness setting
+// - Write 0x17 [NN]: Set LED brightness to NN
 // - Read 0x20: Query DC IN voltage
 // - Read 0x21: Query supercap voltage
 // - Read 0x22: Query DC IN current
@@ -99,6 +101,11 @@ void request_I2C_event_0x16() {
   Wire.write(watchdog_elapsed / 100);
 }
 
+void request_I2C_event_0x17() {
+  // Query LED brightness level
+  Wire.write(led_global_brightness);
+}
+
 void request_I2C_event_0x20() {
   // Query DC IN voltage
   Wire.write(v_in_buf, 2);
@@ -125,42 +132,42 @@ void request_I2C_event_unknown() {
 }
 
 void (*request_I2C_event_array[])() = {
-  request_I2C_event_unknown,  // 0x00
-  request_I2C_event_0x01,     // 0x01
-  request_I2C_event_0x02,     // 0x02
-  request_I2C_event_0x03,     // 0x03
-  request_I2C_event_0x04,     // 0x04
-  request_I2C_event_unknown,  // 0x05
-  request_I2C_event_unknown,  // 0x06
-  request_I2C_event_unknown,  // 0x07
-  request_I2C_event_unknown,  // 0x08
-  request_I2C_event_unknown,  // 0x09
-  request_I2C_event_unknown,  // 0x0a
-  request_I2C_event_unknown,  // 0x0b
-  request_I2C_event_unknown,  // 0x0c
-  request_I2C_event_unknown,  // 0x0d
-  request_I2C_event_unknown,  // 0x0e
-  request_I2C_event_unknown,  // 0x0f
-  request_I2C_event_0x10,     // 0x10
-  request_I2C_event_unknown,  // 0x11
-  request_I2C_event_0x12,     // 0x12
-  request_I2C_event_0x13,     // 0x13
-  request_I2C_event_0x14,     // 0x14
-  request_I2C_event_0x15,     // 0x15
-  request_I2C_event_0x16,     // 0x16
-  request_I2C_event_unknown,  // 0x17
-  request_I2C_event_unknown,  // 0x18
-  request_I2C_event_unknown,  // 0x19
-  request_I2C_event_unknown,  // 0x1a
-  request_I2C_event_unknown,  // 0x1b
-  request_I2C_event_unknown,  // 0x1c
-  request_I2C_event_unknown,  // 0x1d
-  request_I2C_event_unknown,  // 0x1e
-  request_I2C_event_unknown,  // 0x1f
-  request_I2C_event_0x20,     // 0x20
-  request_I2C_event_0x21,     // 0x21
-  request_I2C_event_0x22,     // 0x22
-  request_I2C_event_0x23,     // 0x23
+    request_I2C_event_unknown,  // 0x00
+    request_I2C_event_0x01,     // 0x01
+    request_I2C_event_0x02,     // 0x02
+    request_I2C_event_0x03,     // 0x03
+    request_I2C_event_0x04,     // 0x04
+    request_I2C_event_unknown,  // 0x05
+    request_I2C_event_unknown,  // 0x06
+    request_I2C_event_unknown,  // 0x07
+    request_I2C_event_unknown,  // 0x08
+    request_I2C_event_unknown,  // 0x09
+    request_I2C_event_unknown,  // 0x0a
+    request_I2C_event_unknown,  // 0x0b
+    request_I2C_event_unknown,  // 0x0c
+    request_I2C_event_unknown,  // 0x0d
+    request_I2C_event_unknown,  // 0x0e
+    request_I2C_event_unknown,  // 0x0f
+    request_I2C_event_0x10,     // 0x10
+    request_I2C_event_unknown,  // 0x11
+    request_I2C_event_0x12,     // 0x12
+    request_I2C_event_0x13,     // 0x13
+    request_I2C_event_0x14,     // 0x14
+    request_I2C_event_0x15,     // 0x15
+    request_I2C_event_0x16,     // 0x16
+    request_I2C_event_0x17,     // 0x17
+    request_I2C_event_unknown,  // 0x18
+    request_I2C_event_unknown,  // 0x19
+    request_I2C_event_unknown,  // 0x1a
+    request_I2C_event_unknown,  // 0x1b
+    request_I2C_event_unknown,  // 0x1c
+    request_I2C_event_unknown,  // 0x1d
+    request_I2C_event_unknown,  // 0x1e
+    request_I2C_event_unknown,  // 0x1f
+    request_I2C_event_0x20,     // 0x20
+    request_I2C_event_0x21,     // 0x21
+    request_I2C_event_0x22,     // 0x22
+    request_I2C_event_0x23,     // 0x23
 };
 
 void receive_I2C_event(int bytes) {
@@ -171,7 +178,8 @@ void receive_I2C_event(int bytes) {
     // We can assume this is a register read request
     i2c_register = Wire.read();
 
-    if (i2c_register < sizeof(request_I2C_event_array) / sizeof(request_I2C_event_array[0])) {
+    if (i2c_register <
+        sizeof(request_I2C_event_array) / sizeof(request_I2C_event_array[0])) {
       Wire.onRequest(request_I2C_event_array[i2c_register]);
     } else {
       Wire.onRequest(request_I2C_event_unknown);
@@ -210,6 +218,10 @@ void receive_I2C_event(int bytes) {
     case 0x14:
       // Set power-off threshold voltage
       new_power_off_vcap_voltage = (Wire.read() << 2) | (Wire.read() >> 6);
+      break;
+    case 0x17:
+      // Set LED brightness level
+      new_led_global_brightness = Wire.read();
       break;
     case 0x30:
       // Set shutdown initiated

@@ -3,15 +3,18 @@
 
 #include <elapsedMillis.h>
 
+#include "cie1931.h"
 #include "constants.h"
 #include "digital_io.h"
 
 #define BLINKER_PERIOD_SCALE 32768
 
-
 #ifndef MILLIS_USE_TIMERD0
-  #error "This sketch is written for use with TCD0 as the millis timing source"
+#error "This sketch is written for use with TCD0 as the millis timing source"
 #endif
+
+// kludgy forward declaration
+extern uint8_t led_global_brightness;
 
 /**
  * @brief Define an individual LED pattern segment.
@@ -58,6 +61,7 @@ class LedBlinker {
       pin_mask_[i] = digitalPinToBitMask(pins[i]);
       pinMode(pins[i], OUTPUT);
     }
+    value_step = (bar_max_value_ - bar_knee_value_) / (NUM_LEDS - 1);
   }
 
   void set_pattern(LedPatternSegment* pattern) {
@@ -69,37 +73,40 @@ class LedBlinker {
 
   void set_bar(uint16_t value) {
     if (value < bar_knee_value_) {
+      // the first LED brightness is proportional to 0..bar_knee_value_ V
       bar_value_[0] = 255 * value / bar_knee_value_;
       for (int i = 1; i < NUM_LEDS; i++) {
         bar_value_[i] = 0;
       }
     } else if (value >= bar_max_value_) {
+      // all LEDs are fully lit
       for (int i = 1; i < NUM_LEDS; i++) {
         bar_value_[i] = 255;
       }
     } else {
-      // value is between bar_knee_value_ and bar_max_value_
+      // Value is between bar_knee_value_ and bar_max_value_. The first LED
+      // is fully lit and the remaining LEDs are lit proportionally to the
+      // voltage value.
 
-      // value increase between each LED
-      uint16_t value_step = (bar_max_value_ - bar_knee_value_) / (NUM_LEDS - 1);
+      // set the first LED to full brightness
+      bar_value_[0] = 255;
 
-      // determine how many LEDs are fully lit
-      int num_full_leds = (value - bar_knee_value_) / value_step + 1;
+      // determine how many additional LEDs are fully lit
+      int num_full_leds = (value - bar_knee_value_) / value_step;
       // set all lit leds
-      for (int i = 0; i < num_full_leds; i++) {
+      for (int i = 1; i < num_full_leds + 1; i++) {
         bar_value_[i] = 255;
       }
       // set all unlit leds
-      for (int i = num_full_leds + 1; i < NUM_LEDS; i++) {
+      for (int i = num_full_leds + 2; i < NUM_LEDS; i++) {
         bar_value_[i] = 0;
       }
-      // determine the value of the last fully lit LED
-      uint16_t prev_led_value =
-          bar_knee_value_ + (num_full_leds - 1) * value_step;
-
-      // determine the value of the partiall lit LED
-      bar_value_[num_full_leds] =
-          (uint32_t)(value - prev_led_value) * 255 / value_step;
+      // determine the value of the partially lit LED
+      uint32_t new_value =
+          255 *
+          ((uint32_t)value - bar_knee_value_ - num_full_leds * value_step) /
+          value_step;
+      bar_value_[num_full_leds + 1] = new_value;
     }
     update_led_values();
   }
@@ -120,11 +127,12 @@ class LedBlinker {
     }
   }
 
- protected:
-  PORT_t* port_[NUM_LEDS];       //!< Port for each LED
-  uint8_t pin_[NUM_LEDS];        //!< Pin for each LED
-  uint8_t pin_mask_[NUM_LEDS];   //!< Port mask for each LED pin
   uint8_t bar_value_[NUM_LEDS];  //!< Bar display brightness value for each LED
+
+ protected:
+  PORT_t* port_[NUM_LEDS];      //!< Port for each LED
+  uint8_t pin_[NUM_LEDS];       //!< Pin for each LED
+  uint8_t pin_mask_[NUM_LEDS];  //!< Port mask for each LED pin
   uint8_t
       led_value_[NUM_LEDS];     //!< Current final brightness value for each LED
   LedPatternSegment* pattern_;  //!< Pointer to the current pattern
@@ -133,6 +141,7 @@ class LedBlinker {
   uint16_t bar_knee_value_;          //!< Knee value for the bar display
   static constexpr uint16_t bar_max_value_ = uint16_t(
       ((uint16_t)-1) * 9.0 / VCAP_MAX);  //!< Maximum value for the bar display
+  uint16_t value_step;  //!< Value increase between each LED in the bar display
 
   /**
    * @brief Update the LED output values.
@@ -143,11 +152,16 @@ class LedBlinker {
     uint8_t mask = pattern_[pattern_index_].mask;
     for (int i = 0; i < NUM_LEDS; i++) {
       if (mask & (1 << NUM_LEDS - 1 - i)) {
-        led_value_[i] = pattern_[pattern_index_].brightness[i];
+        uint16_t new_brightness =
+            led_global_brightness * pattern_[pattern_index_].brightness[i];
+        led_value_[i] = new_brightness >> 8;
       } else {
-        led_value_[i] = bar_value_[i];
+        uint16_t new_brightness = led_global_brightness * bar_value_[i];
+        led_value_[i] = new_brightness >> 8;
       }
-      analogWrite(pin_[i], led_value_[i]);
+      // Use a lookup table to map the logarithmic sensitivity of the human
+      // eye to the linear PWM output. Or the other way around?
+      analogWrite(pin_[i], cie[led_value_[i]]);
     }
   }
 };
