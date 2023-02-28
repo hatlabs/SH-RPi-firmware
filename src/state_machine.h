@@ -18,8 +18,14 @@ typedef enum {
   WATCHDOG_REBOOT,
   ENT_OFF,
   OFF,
+  ENT_SLEEP_SHUTDOWN,
+  SLEEP_SHUTDOWN,
+  ENT_SLEEP,
+  SLEEP,
   NUM_STATES
 } StateType;
+
+extern char *state_names[];
 
 void sm_state_BEGIN();
 void sm_state_WAIT_VIN_ON();
@@ -35,6 +41,10 @@ void sm_state_ENT_WATCHDOG_REBOOT();
 void sm_state_WATCHDOG_REBOOT();
 void sm_state_ENT_OFF();
 void sm_state_OFF();
+void sm_state_ENT_SLEEP_SHUTDOWN();
+void sm_state_SLEEP_SHUTDOWN();
+void sm_state_ENT_SLEEP();
+void sm_state_SLEEP();
 
 void sm_run();
 

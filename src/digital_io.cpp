@@ -1,11 +1,11 @@
 #include "digital_io.h"
 
-#include <avr/io.h>
 #include <Arduino.h>
+#include <avr/io.h>
 
 #include "globals.h"
 
-bool read_pin(int pin) { 
+bool read_pin(int pin) {
   PORT_t* port = digitalPinToPortStruct(pin);
   return port->IN & digitalPinToBitMask(pin);
 }
