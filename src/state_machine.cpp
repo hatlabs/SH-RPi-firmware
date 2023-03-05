@@ -37,6 +37,10 @@ StateType sm_state = BEGIN;
 
 StateType get_sm_state() { return sm_state; }
 
+const char* get_sm_state_name() {
+  return state_names[sm_state];
+}
+
 // All LEDs are off
 LedPatternSegment power_off_pattern[] = {
     {{0, 0, 0, 0}, 0b1111, 3900},

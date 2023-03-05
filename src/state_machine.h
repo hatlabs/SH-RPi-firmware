@@ -49,5 +49,6 @@ void sm_state_SLEEP();
 void sm_run();
 
 StateType get_sm_state();
+const char* get_sm_state_name();
 
 #endif
