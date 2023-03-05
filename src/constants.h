@@ -5,13 +5,16 @@
 #define LEGACY_FW_VERSION 0xff
 
 // FW version provided by the new I2C register
-constexpr char kFWVersion[] = {2, 0, 0, 2};
+constexpr char kFWVersion[] = {2, 0, 1, 0xff};
 
 // HW version provided by the Legacy version I2C register
 #define LEGACY_HW_VERSION 0x00
 
 // HW version provided by the new I2C register
-constexpr char kHWVersion[] = {2, 0, 0, 2};
+constexpr char kHWVersion[] = {2, 0, 0, 0xff};
+
+// Needed for HW bug workarounds for version 2.0.0 only
+#define HW_VERSION_2_0_0
 
 // I2C address of the MCU
 #define I2C_ADDRESS 0x6d
@@ -76,6 +79,8 @@ constexpr char kHWVersion[] = {2, 0, 0, 2};
 #define VCAP_MAX 9.35
 // integer scaling factor for Vcap voltage
 #define VCAP_SCALE 1024
+// Voltage at which the first LED is lit
+#define LED_BAR_KNEE 6.0
 // maximum value indicated by the LED bar
 #define LED_BAR_MAX 9.0
 
