@@ -5,7 +5,7 @@
 #define LEGACY_FW_VERSION 0xff
 
 // FW version provided by the new I2C register
-constexpr char kFWVersion[] = {2, 0, 1, 0xff};
+constexpr char kFWVersion[] = {2, 0, 2, 0xff};
 
 // HW version provided by the Legacy version I2C register
 #define LEGACY_HW_VERSION 0x00
