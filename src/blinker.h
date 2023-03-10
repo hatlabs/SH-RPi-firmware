@@ -65,6 +65,10 @@ class LedBlinker {
   }
 
   void set_pattern(LedPatternSegment* pattern) {
+    // only set if the new pattern is different from the current pattern
+    if (pattern == pattern_) {
+      return;
+    }
     pattern_ = pattern;
     pattern_index_ = 0;
     pattern_timer_ = 0;
