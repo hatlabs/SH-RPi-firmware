@@ -36,7 +36,7 @@ elapsedMillis gpio_poweroff_elapsed;
 
 int led_pins[] = {LED1_PIN, LED2_PIN, LED3_PIN, LED4_PIN};
 constexpr uint16_t led_bar_knee_value =
-    uint16_t(((uint16_t)-1) * (VCAP_POWER_ON / VCAP_MAX));
+    uint16_t(((uint16_t)-1) * (LED_BAR_KNEE / VCAP_MAX));
 LedBlinker led_blinker(led_pins, off_pattern, led_bar_knee_value);
 
 volatile bool shutdown_requested = false;
@@ -49,6 +49,10 @@ volatile uint8_t i2c_register = 0;
 
 int16_t power_on_vcap_voltage = int(VCAP_POWER_ON / VCAP_MAX * VCAP_SCALE);
 int16_t power_off_vcap_voltage = int(VCAP_POWER_OFF / VCAP_MAX * VCAP_SCALE);
+int16_t vcap_alarm_voltage = int(VCAP_ALARM / VCAP_MAX * VCAP_SCALE);
+
+bool vcap_alarm_triggered = false;
+bool vcap_alarm_changed = false;
 
 int16_t new_power_on_vcap_voltage = -1;
 int16_t new_power_off_vcap_voltage = -1;
@@ -136,6 +140,18 @@ void loop() {
     att1s_analog_read(V_CAP_ADC_AIN, V_CAP_ADC_NUM);
     i_in = att1s_analog_read(I_IN_ADC_AIN, I_IN_ADC_NUM);
 
+    if (v_supercap > vcap_alarm_voltage) {
+      if (!vcap_alarm_triggered) {
+        vcap_alarm_triggered = true;
+        vcap_alarm_changed = true;
+      }
+    } else {
+      if (vcap_alarm_triggered) {
+        vcap_alarm_triggered = false;
+        vcap_alarm_changed = true;
+      }
+    }
+
     v_supercap_buf[0] = v_supercap >> 2;
     v_supercap_buf[1] = (v_supercap << 6) & 0xff;
 
@@ -163,35 +179,42 @@ void loop() {
     }
 
     rtc_wakeup_triggered = !read_pin(RTC_INT_PIN);
+
+#ifndef HW_VERSION_2_0_0
     ext_wakeup_triggered = !read_pin(EXT_INT_PIN);
 
     // if POWER_TOGGLE_PIN is pulled low, initiate shutdown
     if (read_pin(POWER_TOGGLE_PIN) == false) {
       shutdown_requested = true;
     }
-
+#endif
     // v_supercap is 10-bit while set_bar input is 16-bit - shift up by 6 bits
     led_blinker.set_bar(v_supercap << 6);
   }
 
   static elapsedMillis serial_output_elapsed = 0;
-  if (serial_output_elapsed > 100) {
+  if (serial_output_elapsed > 500) {
     serial_output_elapsed = 0;
 
     // Serial.print("0123456789");
-    Serial.print("V_sup: ");
+    Serial.print("State: ");
+    Serial.print(get_sm_state_name());
+    Serial.print(", V_sup: ");
     Serial.print(v_supercap);
-
     Serial.print(", V_in: ");
     Serial.print(v_in);
     Serial.print(", I_in: ");
     Serial.print(i_in);
     Serial.print(", temp: ");
     Serial.print(temperature_K);
-    Serial.print(", i2c reg: ");
+    Serial.print(", i2c: ");
     Serial.print(i2c_register);
-    Serial.print(", RTC alarm: ");
-    Serial.print(rtc_wakeup_triggered);
+    Serial.print(", RTC: ");
+    Serial.print(read_pin(RTC_INT_PIN));
+    Serial.print(", EXT: ");
+    Serial.print(read_pin(EXT_INT_PIN));
+    Serial.print(", PWR: ");
+    Serial.print(read_pin(POWER_TOGGLE_PIN));
     Serial.println("");
   }
 
