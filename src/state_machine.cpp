@@ -94,23 +94,43 @@ void sm_state_ENT_ON() {
   sm_state = ON;
 }
 
+// Pattern to set when watchdog is enabled
 LedPatternSegment watchdog_pattern[] = {
     {{255, 255, 255, 255}, 0b0000, 3950},
     {{0, 0, 0, 0}, 0b1111, 50},
     {{0, 0, 0, 0}, 0b0000, 0},
 };
 
-void sm_state_ON() {
-  if (watchdog_value_changed) {
+// Pattern to set when supercap overvoltage is detected
+LedPatternSegment vcap_alarm_pattern[] = {
+    {{255, 255, 255, 255}, 0b1111, 100},
+    {{0, 0, 0, 0}, 0b1111, 100},
+    {{0, 0, 0, 0}, 0b0000, 0},
+};
+
+void update_watchdog_pattern() {
     if (watchdog_limit) {
-      Serial.println("Watchdog enabled");
       led_blinker.set_pattern(watchdog_pattern);
     } else {
-      Serial.println("Watchdog disabled");
       led_blinker.set_pattern(no_pattern);
     }
+}
+
+void sm_state_ON() {
+  if (watchdog_value_changed) {
+    update_watchdog_pattern();
     watchdog_value_changed = false;
   }
+
+  if (vcap_alarm_changed) {
+    if (vcap_alarm_triggered) {
+      led_blinker.set_pattern(vcap_alarm_pattern);
+    } else {
+      update_watchdog_pattern();
+    }
+    vcap_alarm_changed = false;
+  }
+
   if (watchdog_limit && (watchdog_elapsed > watchdog_limit)) {
     sm_state = ENT_WATCHDOG_REBOOT;
     return;

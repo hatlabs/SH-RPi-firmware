@@ -29,6 +29,9 @@ extern volatile uint8_t i2c_register;
 
 extern int16_t power_on_vcap_voltage;
 extern int16_t power_off_vcap_voltage;
+extern int16_t vcap_alarm_voltage;
+extern bool vcap_alarm_triggered;
+extern bool vcap_alarm_changed;
 
 extern int16_t new_power_on_vcap_voltage;
 extern int16_t new_power_off_vcap_voltage;

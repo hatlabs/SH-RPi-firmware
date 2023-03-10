@@ -75,6 +75,8 @@ constexpr char kHWVersion[] = {2, 0, 0, 0xff};
 #define VCAP_POWER_ON 6.0
 // Vcap voltage at which 5V is disabled
 #define VCAP_POWER_OFF 5.0
+// Vcap voltage should never exceed this value
+#define VCAP_ALARM 9.0
 // max scaling value for Vcap voltage
 #define VCAP_MAX 9.35
 // integer scaling factor for Vcap voltage

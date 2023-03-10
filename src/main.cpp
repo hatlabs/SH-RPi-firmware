@@ -49,6 +49,10 @@ volatile uint8_t i2c_register = 0;
 
 int16_t power_on_vcap_voltage = int(VCAP_POWER_ON / VCAP_MAX * VCAP_SCALE);
 int16_t power_off_vcap_voltage = int(VCAP_POWER_OFF / VCAP_MAX * VCAP_SCALE);
+int16_t vcap_alarm_voltage = int(VCAP_ALARM / VCAP_MAX * VCAP_SCALE);
+
+bool vcap_alarm_triggered = false;
+bool vcap_alarm_changed = false;
 
 int16_t new_power_on_vcap_voltage = -1;
 int16_t new_power_off_vcap_voltage = -1;
@@ -136,6 +140,18 @@ void loop() {
     att1s_analog_read(V_CAP_ADC_AIN, V_CAP_ADC_NUM);
     i_in = att1s_analog_read(I_IN_ADC_AIN, I_IN_ADC_NUM);
 
+    if (v_supercap > vcap_alarm_voltage) {
+      if (!vcap_alarm_triggered) {
+        vcap_alarm_triggered = true;
+        vcap_alarm_changed = true;
+      }
+    } else {
+      if (vcap_alarm_triggered) {
+        vcap_alarm_triggered = false;
+        vcap_alarm_changed = true;
+      }
+    }
+
     v_supercap_buf[0] = v_supercap >> 2;
     v_supercap_buf[1] = (v_supercap << 6) & 0xff;
 
@@ -177,7 +193,7 @@ void loop() {
   }
 
   static elapsedMillis serial_output_elapsed = 0;
-  if (serial_output_elapsed > 100) {
+  if (serial_output_elapsed > 500) {
     serial_output_elapsed = 0;
 
     // Serial.print("0123456789");
