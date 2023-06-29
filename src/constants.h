@@ -5,7 +5,7 @@
 #define LEGACY_FW_VERSION 0xff
 
 // FW version provided by the new I2C register
-constexpr char kFWVersion[] = {2, 0, 2, 0xff};
+constexpr char kFWVersion[] = {2, 0, 4, 0xff};
 
 // HW version provided by the Legacy version I2C register
 #define LEGACY_HW_VERSION 0x00
@@ -72,7 +72,7 @@ constexpr char kHWVersion[] = {2, 0, 0, 0xff};
 #define GPIO_OFF_TIME_LIMIT 1000
 
 // Vcap voltage at which 5V is enabled
-#define VCAP_POWER_ON 6.0
+#define VCAP_POWER_ON 8.0
 // Vcap voltage at which 5V is disabled
 #define VCAP_POWER_OFF 5.0
 // Vcap voltage should never exceed this value
