@@ -78,7 +78,7 @@ class LedBlinker {
   void set_bar(uint16_t value) {
     if (value < bar_knee_value_) {
       // the first LED brightness is proportional to 0..bar_knee_value_ V
-      bar_value_[0] = 255 * value / bar_knee_value_;
+      bar_value_[0] = (255L * value ) / bar_knee_value_;
       for (int i = 1; i < NUM_LEDS; i++) {
         bar_value_[i] = 0;
       }
