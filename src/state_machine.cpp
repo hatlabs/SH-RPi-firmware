@@ -53,6 +53,8 @@ void sm_state_BEGIN() {
   i2c_register = 0xff;
   watchdog_limit = 0;
   gpio_poweroff_elapsed = 0;
+  shutdown_requested = false;
+  sleep_requested = false;
 
   led_blinker.set_pattern(power_off_pattern);
 
@@ -87,13 +89,6 @@ void sm_state_CHARGING() {
   }
 }
 
-void sm_state_ENT_ON() {
-  set_en5v_pin(true);
-  led_blinker.set_pattern(no_pattern);
-  gpio_poweroff_elapsed = 0;
-  sm_state = ON;
-}
-
 // Pattern to set when watchdog is enabled
 LedPatternSegment watchdog_pattern[] = {
     {{255, 255, 255, 255}, 0b0000, 3950},
@@ -114,6 +109,13 @@ void update_watchdog_pattern() {
     } else {
       led_blinker.set_pattern(no_pattern);
     }
+}
+
+void sm_state_ENT_ON() {
+  set_en5v_pin(true);
+  update_watchdog_pattern();
+  gpio_poweroff_elapsed = 0;
+  sm_state = ON;
 }
 
 void sm_state_ON() {
