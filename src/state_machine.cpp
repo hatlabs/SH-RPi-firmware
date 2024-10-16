@@ -55,6 +55,7 @@ void sm_state_BEGIN() {
   gpio_poweroff_elapsed = 0;
   shutdown_requested = false;
   sleep_requested = false;
+  reset_requested = false;
 
   led_blinker.set_pattern(power_off_pattern);
 
@@ -310,6 +311,11 @@ void sm_state_SLEEP() {
 
 void sm_run() {
   static StateType last_state = BEGIN;
+  // Reset request overrides the state machine
+  if (reset_requested) {
+    reset_requested = false;
+    sm_state = ENT_OFF;
+  }
   if (last_state != sm_state) {
     Serial.print("New state: ");
     Serial.println(state_names[sm_state]);

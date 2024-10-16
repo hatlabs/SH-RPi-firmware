@@ -41,6 +41,7 @@ LedBlinker led_blinker(led_pins, off_pattern, led_bar_knee_value);
 
 volatile bool shutdown_requested = false;
 volatile bool sleep_requested = false;
+volatile bool reset_requested = false;
 
 bool rtc_wakeup_triggered = false;
 bool ext_wakeup_triggered = false;
@@ -186,6 +187,11 @@ void loop() {
     // if POWER_TOGGLE_PIN is pulled low, initiate shutdown
     if (read_pin(POWER_TOGGLE_PIN) == false) {
       shutdown_requested = true;
+    }
+
+    // Pulling both EXT_INT_PIN and RTC_INT_PIN low will trigger a reset
+    if (ext_wakeup_triggered && shutdown_requested) {
+      reset_requested = true;
     }
 #endif
     // v_supercap is 10-bit while set_bar input is 16-bit - shift up by 6 bits
