@@ -51,6 +51,7 @@ extern char temperature_K_buf[2];
 
 extern volatile bool shutdown_requested;
 extern volatile bool sleep_requested;
+extern volatile bool reset_requested;
 
 extern LedBlinker led_blinker;
 
